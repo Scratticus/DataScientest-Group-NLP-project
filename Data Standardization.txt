@@ -1,0 +1,13 @@
+test and train csv are standardised for consistent processing.
+
+to use csvs download from this link: https://drive.google.com/drive/folders/1MMH-EXHOmrBhmsoCN14KgrqF9OsVWXmy?usp=share_link
+
+then run the following code.
+
+train = pd.read_csv('train.csv') # include filepath
+test = pd.read_csv('test.csv') # include filepath
+
+X_train = train.drop(columns='overall')
+y_train = train['overall']
+X_test = test.drop(columns='overall')
+y_test = test['overall']
