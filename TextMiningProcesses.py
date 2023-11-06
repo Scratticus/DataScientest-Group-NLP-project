@@ -187,21 +187,39 @@ def tfidf_vectorize_data(X_train_processed, X_test_processed=None, max_features=
         train_X = tfidf_vectorizer.fit_transform(X_train_processed)
         return train_X, None
     
-# Test Elements
+# # Test Elements
 
 # import pandas as pd
 # import numpy as np
 # from sklearn.linear_model import LinearRegression
 
-# X = pd.Series({0: 'I like this', 1: 'good times'})
+# X = pd.Series({
+#     0: 'good, I like it', 
+#     1: 'happy best product',
+#     2: 'good happy product',
+#     3: 'bad stuff broken',
+#     4: 'evil bad things',
+#     5: 'good product'
+# })
 
 # lem_X = column_lemmatizer(X)
 
+# print(lem_X)
+
 # TFIDF_X = tfidf_vectorize_data(lem_X)
+
+# print(TFIDF_X[0].todense())
 
 # lr = LinearRegression()
 
-# y = pd.Series({0: 1, 1: 0})
+# y = pd.Series({
+#     0: 1, 
+#     1: 1,
+#     2: 1,
+#     3: 0,
+#     4: 0,
+#     5: 0
+# })
 
 # lr.fit(TFIDF_X[0], y)
 
