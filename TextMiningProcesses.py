@@ -122,7 +122,7 @@ def column_stemmatizer(text_series):
 
     return stemmed_series
 
-def count_vectorize_data(X_train_processed, X_test_processed):
+def count_vectorize_data(X_train_processed, X_test_processed=None, max_features=None):
     """
     This function uses CountVectorizer to vectorize the train and test text datasets ready for sentiment analysis.
     
@@ -143,14 +143,18 @@ def count_vectorize_data(X_train_processed, X_test_processed):
     """
     from sklearn.feature_extraction.text import CountVectorizer
 
-    vectorizer = CountVectorizer()
+    vectorizer = CountVectorizer(max_features=max_features)
 
-    train_X = vectorizer.fit_transform(X_train_processed)
-    test_X = vectorizer.transform(X_test_processed)
+    if X_test_processed is not None and X_test_processed.any():
+        train_X = vectorizer.fit_transform(X_train_processed)
+        test_X = vectorizer.transform(X_test_processed)
+        return train_X, test_X
+    else: 
+        train_X = vectorizer.fit_transform(X_train_processed)
+        return train_X, None
 
-    return train_X, test_X
-
-def tfidf_vectorize_data(X_train_processed, X_test_processed):
+    
+def tfidf_vectorize_data(X_train_processed, X_test_processed=None, max_features=None):
     """
     Perform TF-IDF processing on the train and test text datasets ready for sentiment analysis.
 
@@ -172,10 +176,34 @@ def tfidf_vectorize_data(X_train_processed, X_test_processed):
     from sklearn.feature_extraction.text import TfidfVectorizer
 
     # Create a TfidfVectorizer instance
-    tfidf_vectorizer = TfidfVectorizer()
+    tfidf_vectorizer = TfidfVectorizer(max_features=max_features)
 
     # Fit and transform the specified text data
-    train_X = tfidf_vectorizer.fit_transform(X_train_processed)
-    test_X = tfidf_vectorizer.transform(X_test_processed)
+    if X_test_processed is not None and X_test_processed.any():
+        train_X = tfidf_vectorizer.fit_transform(X_train_processed)
+        test_X = tfidf_vectorizer.transform(X_test_processed)
+        return train_X, test_X
+    else: 
+        train_X = tfidf_vectorizer.fit_transform(X_train_processed)
+        return train_X, None
+    
+# Test Elements
 
-    return train_X, test_X
+# import pandas as pd
+# import numpy as np
+# from sklearn.linear_model import LinearRegression
+
+# X = pd.Series({0: 'I like this', 1: 'good times'})
+
+# lem_X = column_lemmatizer(X)
+
+# TFIDF_X = tfidf_vectorize_data(lem_X)
+
+# lr = LinearRegression()
+
+# y = pd.Series({0: 1, 1: 0})
+
+# lr.fit(TFIDF_X[0], y)
+
+# print(lr.score(TFIDF_X[0], y))
+
