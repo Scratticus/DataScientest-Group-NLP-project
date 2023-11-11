@@ -208,7 +208,7 @@ def tfidf_vectorize_data(X_train_processed, X_test_processed=None, max_features=
 
 # TFIDF_X = tfidf_vectorize_data(lem_X)
 
-# print(TFIDF_X[0].todense())
+# print(TFIDF_X[0].shape)
 
 # lr = LinearRegression()
 
