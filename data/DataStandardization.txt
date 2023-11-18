@@ -11,3 +11,10 @@ X_train = train.drop(columns='overall')
 y_train = train['overall']
 X_test = test.drop(columns='overall')
 y_test = test['overall']
+
+Word2Vec full csv
+
+df = pd.read_csv('../data/full_w2v_df', index_col=0)
+
+features = df.drop(columns='overall')
+target = df['overall']
