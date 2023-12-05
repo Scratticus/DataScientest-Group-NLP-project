@@ -46,13 +46,14 @@ def column_lemmatizer(text_series):
                 if isinstance(item, str):
                     item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', item)
                     item_tokens = tokenizer.tokenize(item_no_tags.lower())
-                    token_list = []
+                    lem_string = ''
                     for token in item_tokens:
                         corrected_token = spell.correction(token.strip())
                         if corrected_token and corrected_token not in stop_words:
                             lemmed_word = lemmatizer.lemmatize(corrected_token)
-                            token_list.append(lemmed_word)     
-                    lemmed_cells.append(token_list)
+                            lem_string += lemmed_word + ' '     
+                    lem_string = lem_string.strip()
+                    lemmed_cells.append(lem_string)
                     pbar1.update(1)
 
             lemmed_series = pd.Series(lemmed_cells)
@@ -108,13 +109,14 @@ def column_stemmatizer(text_series):
                 if isinstance(item, str):
                     item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', item)
                     item_tokens = tokenizer.tokenize(item_no_tags.lower())
-                    token_list = []
+                    stem_string = ''
                     for token in item_tokens:
                         corrected_token = spell.correction(token)
                         if corrected_token and corrected_token not in stop_words:
                             stemmed_word = stemmer.stem(corrected_token)
-                            token_list.append(stemmed_word) 
-                    stemmed_cells.append(token_list)
+                            stem_string += stemmed_word + ' ' 
+                    stem_string = stem_string.strip()
+                    stemmed_cells.append(stem_string)
                     pbar1.update(1)
 
             stemmed_series = pd.Series(stemmed_cells)
@@ -190,39 +192,40 @@ def tfidf_vectorize_data(X_train_processed, X_test_processed=None, max_features=
     
 # # Test Elements
 
-# import pandas as pd
-# import numpy as np
-# from sklearn.linear_model import LinearRegression
+if __name__ == "__main__":
+    import pandas as pd
+    import numpy as np
+    from sklearn.linear_model import LinearRegression
 
-# X = pd.Series({
-#     0: 'good, I like it', 
-#     1: 'happy best product',
-#     2: 'good happy product',
-#     3: 'bad stuff broken',
-#     4: 'evil bad things',
-#     5: 'good product'
-# })
+    X = pd.Series({
+        0: 'good, I like it', 
+        1: 'happy best product',
+        2: 'good happy product',
+        3: 'bad stuff broken',
+        4: 'evil bad things',
+        5: 'good product'
+    })
 
-# lem_X = column_lemmatizer(X)
+    lem_X = column_lemmatizer(X)
 
-# print(lem_X)
+    print(lem_X)
 
-# TFIDF_X = tfidf_vectorize_data(lem_X)
+    vectors = tfidf_vectorize_data(lem_X)
 
-# print(TFIDF_X[0].shape)
+    print(vectors[0].shape)
 
-# lr = LinearRegression()
+    lr = LinearRegression()
 
-# y = pd.Series({
-#     0: 1, 
-#     1: 1,
-#     2: 1,
-#     3: 0,
-#     4: 0,
-#     5: 0
-# })
+    y = pd.Series({
+        0: 1, 
+        1: 1,
+        2: 1,
+        3: 0,
+        4: 0,
+        5: 0
+    })
 
-# lr.fit(TFIDF_X[0], y)
+    lr.fit(vectors[0], y)
 
-# print(lr.score(TFIDF_X[0], y))
+    print(lr.score(vectors[0], y))
 
