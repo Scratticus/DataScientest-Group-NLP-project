@@ -48,7 +48,7 @@ def column_lemmatizer(text_series):
                 token_list = []
                 for token in item_tokens:
                     corrected_token = spell.correction(token.strip())
-                    if corrected_token not in stop_words:
+                    if corrected_token and corrected_token not in stop_words:
                         lemmed_word = lemmatizer.lemmatize(corrected_token)
                         token_list.append(lemmed_word)     
                 lemmed_cells.append(token_list)
@@ -107,10 +107,10 @@ def column_stemmatizer(text_series):
                 item_tokens = tokenizer.tokenize(item_no_tags.lower())
                 token_list = []
                 for token in item_tokens:
-                    corrected_token = spell.correction(token.strip())
-                    if corrected_token not in stop_words:
+                    corrected_token = spell.correction(token)
+                    if corrected_token and corrected_token not in stop_words:
                         stemmed_word = stemmer.stem(corrected_token)
-                        token_list.append(stemmed_word)     
+                        token_list.append(stemmed_word) 
                 stemmed_cells.append(token_list)
 
         stemmed_series = pd.Series(stemmed_cells)
