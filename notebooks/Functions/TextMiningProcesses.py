@@ -1,4 +1,15 @@
 # Function to perform lemmatization and remove stopwords
+def remove_text_between_tags(text):
+    import re
+    if isinstance(text, list):
+        # If 'reviewText' is a list, apply the function to each element of the list
+        return [re.sub(r'<.*?>.*?<.*?>', '', item) if isinstance(item, str) else item for item in text]
+    elif isinstance(text, str):
+        # If 'reviewText' is a string, apply the function directly
+        return re.sub(r'<.*?>.*?<.*?>', '', text)
+    else:
+        return text
+
 def column_lemmatizer(text_series):
     """
     This function preprocesses a pandas Series of sentences, typically taken from a dataframe column and prepares them for classification/regression modelling
@@ -32,9 +43,11 @@ def column_lemmatizer(text_series):
     # Initialize the lemmatizer and stopwords set
     lemmatizer = WordNetLemmatizer()
     stop_words = set(stopwords.words('english'))
-    tokenizer = RegexpTokenizer(r'[\w]+')
+    tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
 
     lemmed_cells = []
+
+    text_series = remove_text_between_tags(text_series)
 
     for i in text_series:
         
@@ -92,10 +105,12 @@ def column_stemmatizer(text_series):
     # Initialize stemmer, stopwords and regex tokenizer
     stemmer = EnglishStemmer()
     stop_words = set(stopwords.words('english'))
-    tokenizer = RegexpTokenizer(r'[\w]+')
+    tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
 
     # prepare list to hold returned data
     stemmed_cells = []
+
+    text_series = remove_text_between_tags(text_series)
 
     # Loop through columns:
     for i in text_series:

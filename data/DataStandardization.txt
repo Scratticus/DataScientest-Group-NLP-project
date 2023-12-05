@@ -14,7 +14,7 @@ y_test = test['overall']
 
 Word2Vec full csv
 
-df = pd.read_csv('../data/full_w2v_df', index_col=0)
+df = pd.read_csv('../data/full_w2v_df.csv', index_col=0)
 
 features = df.drop(columns='overall')
 target = df['overall']
