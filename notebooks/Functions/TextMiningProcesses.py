@@ -19,46 +19,45 @@ def column_lemmatizer(text_series):
     """
     import pandas as pd
     import nltk
+    import re
+
     from nltk.corpus import stopwords
     from nltk.stem import WordNetLemmatizer
     from nltk.tokenize.regexp import RegexpTokenizer
+    from spellchecker import SpellChecker
+
+    tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
+    spell = SpellChecker()
 
     # Download NLTK resources
     if not nltk.corpus.stopwords.fileids():
         nltk.download('punkt')
         nltk.download('stopwords')
-        
-
+    
     # Initialize the lemmatizer and stopwords set
     lemmatizer = WordNetLemmatizer()
     stop_words = set(stopwords.words('english'))
-    tokenizer = RegexpTokenizer(r'[\w]+')
 
-    lemmed_cells = []
+    if isinstance(text_series, pd.Series):
+        # If 'reviewText' is a list, apply the function to each element of the list
+        lemmed_cells =[]
+        for item in text_series:
+            if isinstance(item, str):
+                item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', item)
+                item_tokens = tokenizer.tokenize(item_no_tags.lower())
+                token_list = []
+                for token in item_tokens:
+                    corrected_token = spell.correction(token.strip())
+                    if corrected_token not in stop_words:
+                        lemmed_word = lemmatizer.lemmatize(corrected_token)
+                        token_list.append(lemmed_word)     
+                lemmed_cells.append(token_list)
 
-    for i in text_series:
-        
-        #tokenize series to lower case
-        tokens = tokenizer.tokenize(i.lower())
+        lemmed_series = pd.Series(lemmed_cells)
 
-        # remove stop words
-        stopped = []
-        for token in tokens:
-            if token not in stop_words:
-                stopped.append(token)
-
-        lemmed = ''
-        for word in stopped:
-            lemmed_word = lemmatizer.lemmatize(word)
-            lemmed += lemmed_word + ' '
-
-        lemmed.strip()
-
-        lemmed_cells.append(lemmed)
-
-    lemmed_series = pd.Series(lemmed_cells)
-
-    return lemmed_series
+        return lemmed_series
+    else:
+        raise TypeError('function must take a pd.Series as argument')
 
 def column_stemmatizer(text_series):
     """
@@ -80,47 +79,45 @@ def column_stemmatizer(text_series):
     """
     import pandas as pd
     import nltk
+    import re
+
     from nltk.corpus import stopwords
     from nltk.stem.snowball import EnglishStemmer
     from nltk.tokenize.regexp import RegexpTokenizer
+    from spellchecker import SpellChecker
+
+    tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
+    spell = SpellChecker()
 
     # Download NLTK resources
     if not nltk.corpus.stopwords.fileids():
         nltk.download('punkt')
         nltk.download('stopwords')
-
-    # Initialize stemmer, stopwords and regex tokenizer
+    
+    # Initialize the lemmatizer and stopwords set
     stemmer = EnglishStemmer()
     stop_words = set(stopwords.words('english'))
-    tokenizer = RegexpTokenizer(r'[\w]+')
 
-    # prepare list to hold returned data
-    stemmed_cells = []
+    if isinstance(text_series, pd.Series):
+        # If 'reviewText' is a list, apply the function to each element of the list
+        stemmed_cells =[]
+        for item in text_series:
+            if isinstance(item, str):
+                item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', item)
+                item_tokens = tokenizer.tokenize(item_no_tags.lower())
+                token_list = []
+                for token in item_tokens:
+                    corrected_token = spell.correction(token.strip())
+                    if corrected_token not in stop_words:
+                        stemmed_word = stemmer.stem(corrected_token)
+                        token_list.append(stemmed_word)     
+                stemmed_cells.append(token_list)
 
-    # Loop through columns:
-    for i in text_series:
+        stemmed_series = pd.Series(stemmed_cells)
 
-        # Tokenize series and set lower case
-        tokens = tokenizer.tokenize(i.lower())
-
-        # remove stopwords
-        stopped = []
-        for token in tokens:
-            if token not in stop_words:
-                stopped.append(token)
-        
-        stemmed = ''
-        for word in stopped:
-            stemmed_word = stemmer.stem(word)
-            stemmed += stemmed_word + ' '
-        
-        stemmed.strip()
-
-        stemmed_cells.append(stemmed)
-
-    stemmed_series = pd.Series(stemmed_cells)
-
-    return stemmed_series
+        return stemmed_series
+    else:
+        raise TypeError('function must take a pd.Series as argument')
 
 def count_vectorize_data(X_train_processed, X_test_processed=None, max_features=None):
     """
@@ -187,41 +184,43 @@ def tfidf_vectorize_data(X_train_processed, X_test_processed=None, max_features=
         train_X = tfidf_vectorizer.fit_transform(X_train_processed)
         return train_X, None
     
-# # Test Elements
+# Test Elements
 
-# import pandas as pd
-# import numpy as np
-# from sklearn.linear_model import LinearRegression
+if __name__ == "__main__":
 
-# X = pd.Series({
-#     0: 'good, I like it', 
-#     1: 'happy best product',
-#     2: 'good happy product',
-#     3: 'bad stuff broken',
-#     4: 'evil bad things',
-#     5: 'good product'
-# })
+    import pandas as pd
+    import numpy as np
+    from sklearn.linear_model import LinearRegression
 
-# lem_X = column_lemmatizer(X)
+    X = pd.Series({
+        0: 'good, I like it', 
+        1: 'happy besst product',
+        2: 'good happy product',
+        3: 'bad stufff broaken',
+        4: 'evil bad things',
+        5: 'good product'
+    })
 
-# print(lem_X)
+    lem_X = column_stemmatizer(X)
 
-# TFIDF_X = tfidf_vectorize_data(lem_X)
+    print(lem_X)
 
-# print(TFIDF_X[0].shape)
+    # TFIDF_X = tfidf_vectorize_data(lem_X)
 
-# lr = LinearRegression()
+    # print(TFIDF_X[0].shape)
 
-# y = pd.Series({
-#     0: 1, 
-#     1: 1,
-#     2: 1,
-#     3: 0,
-#     4: 0,
-#     5: 0
-# })
+    # lr = LinearRegression()
 
-# lr.fit(TFIDF_X[0], y)
+    # y = pd.Series({
+    #     0: 1, 
+    #     1: 1,
+    #     2: 1,
+    #     3: 0,
+    #     4: 0,
+    #     5: 0
+    # })
 
-# print(lr.score(TFIDF_X[0], y))
+    # lr.fit(TFIDF_X[0], y)
+
+    # print(lr.score(TFIDF_X[0], y))
 
