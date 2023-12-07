@@ -1,11 +1,11 @@
-def text_stemmer(tokens, stemmer, stop_words):
+def text_stemmer(tokens, stemmer, go_gauge):
     from nltk.stem import WordNetLemmatizer
     from nltk.stem.snowball import EnglishStemmer
     if stemmer == 'lemmatizer':
         lemmatizer = WordNetLemmatizer()
         stem_string = ''
         for token in tokens:
-            if token and token not in stop_words:
+            if token and token in go_gauge:
                 stemmed_word = lemmatizer.lemmatize(token)
                 stem_string += stemmed_word + ' '    
         stem_string = stem_string.strip()
@@ -14,7 +14,7 @@ def text_stemmer(tokens, stemmer, stop_words):
         stemmat = EnglishStemmer()
         stem_string = ''
         for token in tokens:
-            if token and token not in stop_words:
+            if token and token in go_gauge:
                 stemmed_word = stemmat.stem(token)
                 stem_string += stemmed_word + ' '    
         stem_string = stem_string.strip()
@@ -37,9 +37,9 @@ def preprocess_items(text, tokenizer, spell_checker):
             token_list.append(corrected_token)
         return token_list
     
-def process_item(text, tokenizer, spell_checker, stemmer, stop_words):
+def process_item(text, tokenizer, spell_checker, stemmer, go_gauge):
     tokens = preprocess_items(text=text, tokenizer=tokenizer, spell_checker=spell_checker)
-    stemmed_string = text_stemmer(tokens=tokens, stemmer=stemmer, stop_words=stop_words)
+    stemmed_string = text_stemmer(tokens=tokens, stemmer=stemmer, go_gauge=go_gauge)
     if stemmed_string is None:
         stemmed_string = ''
     return stemmed_string
@@ -49,10 +49,10 @@ def process_item_wrapper(args):
     tokenizer = args[1]
     spell_checker = args[2]
     stemmer = args[3]
-    stop_words = args[4]
-    return process_item(text=item, tokenizer=tokenizer, spell_checker=spell_checker, stemmer=stemmer, stop_words=stop_words)
+    go_gauge = args[4]
+    return process_item(text=item, tokenizer=tokenizer, spell_checker=spell_checker, stemmer=stemmer, go_gauge=go_gauge)
             
-def column_lemmatizer(text_series):
+def new_column_lemmatizer(text_series):
     """
     This function preprocesses a pandas Series of sentences, typically taken from a dataframe column and prepares them for classification/regression modelling
     by tokenizing, removing stop words, and lemmatizing the series.
@@ -76,6 +76,7 @@ def column_lemmatizer(text_series):
     from nltk.tokenize.regexp import RegexpTokenizer
     from spellchecker import SpellChecker
     from tqdm import tqdm
+    import csv
 
     from spellchecker import SpellChecker
     from tqdm import tqdm
@@ -90,10 +91,13 @@ def column_lemmatizer(text_series):
   
     # Initialize the lemmatizer and stopwords set
     stop_words = set(stopwords.words('english'))
+    with open('best_features_list.csv', 'r') as file:
+        reader = csv.reader(file)
+        go_gauge = next(reader)
 
     if isinstance(text_series, pd.Series):
         args_list = [
-            (item, tokenizer, spell_checker, 'lemmatizer', stop_words)
+            (item, tokenizer, spell_checker, 'lemmatizer', go_gauge)
             for item in text_series
         ]
 
@@ -108,7 +112,7 @@ def column_lemmatizer(text_series):
     else:
         raise TypeError('function must take a pd.Series as argument')
 
-def column_stemmatizer(text_series):
+def new_column_stemmatizer(text_series):
     """
     This function preprocesses a pandas Series of sentences, typically taken from a dataframe column and prepares them for classification/regression modelling
     by tokenizing, removing stop words, and stemmatizing the series.
@@ -132,6 +136,7 @@ def column_stemmatizer(text_series):
     from nltk.tokenize.regexp import RegexpTokenizer
     from spellchecker import SpellChecker
     from tqdm import tqdm
+    import csv
 
     from spellchecker import SpellChecker
     from tqdm import tqdm
@@ -146,10 +151,13 @@ def column_stemmatizer(text_series):
   
     # Initialize the lemmatizer and stopwords set
     stop_words = set(stopwords.words('english'))
+    with open('best_features_list.csv', 'r') as file:
+        reader = csv.reader(file)
+        go_gauge = next(reader)
 
     if isinstance(text_series, pd.Series):
         args_list = [
-            (item, tokenizer, spell_checker, 'stemmatizer', stop_words)
+            (item, tokenizer, spell_checker, 'stemmatizer', go_gauge)
             for item in text_series
         ]
 
@@ -166,94 +174,39 @@ def column_stemmatizer(text_series):
     else:
         raise TypeError('function must take a pd.Series as argument')
 
-def count_vectorize_data(X_train_processed, X_test_processed=None, max_features=None):
-    """
-    This function uses CountVectorizer to vectorize the train and test text datasets ready for sentiment analysis.
-    
-    The function takes preprocessed text data (X_train_processed and X_test_processed) as inputs,
-    inputs are vectorized with the CountVectorizer function from scikit-learn to convert text into 
-    numerical feature vectors, and returns the vectorized train and test data.
-    
-    Parameters:
-    X_train_processed (pd.Series, column format, lemmatized/stemmatized): Preprocessed textual data for training.
-    X_test_processed (pd.Series, column format, lemmatized/stemmatized): Preprocessed textual data for testing.
-    
-    Returns:
-    train_X (scipy.sparse matrix): Vectorized training data.
-    test_X (scipy.sparse matrix): Vectorized testing data.
-
-    The sparse matrix type is handled by most classification/regression models without using the deprecated dense array types.
-
-    """
-    from sklearn.feature_extraction.text import CountVectorizer
-
-    vectorizer = CountVectorizer(max_features=max_features)
-
-    if X_test_processed is not None and X_test_processed.any():
-        train_X = vectorizer.fit_transform(X_train_processed)
-        test_X = vectorizer.transform(X_test_processed)
-        return train_X, test_X
-    else: 
-        train_X = vectorizer.fit_transform(X_train_processed)
-        return train_X, None
-
-    
-def tfidf_vectorize_data(X_train_processed, X_test_processed=None, max_features=None):
-    """
-    Perform TF-IDF processing on the train and test text datasets ready for sentiment analysis.
-
-    The function takes preprocessed text data (X_train_processed and X_test_processed) as inputs,
-    inputs are vectorized with the TFID function from scikit-learn to convert text into 
-    numerical feature vectors, and returns the vectorized train and test data.
-    
-    Parameters:
-    X_train_processed (pd.Series, column format, lemmatized/stemmatized): Preprocessed textual data for training.
-    X_test_processed (pd.Series, column format, lemmatized/stemmatized): Preprocessed textual data for testing.
-    
-    Returns:
-    train_X (scipy.sparse matrix): Vectorized training data.
-    test_X (scipy.sparse matrix): Vectorized testing data.
-
-    The sparse matrix type is handled by most classification/regression models without using the deprecated dense array types.
-    """
-
-    from sklearn.feature_extraction.text import TfidfVectorizer
-
-    # Create a TfidfVectorizer instance
-    tfidf_vectorizer = TfidfVectorizer(max_features=max_features)
-
-    # Fit and transform the specified text data
-    if X_test_processed is not None and X_test_processed.any():
-        train_X = tfidf_vectorizer.fit_transform(X_train_processed)
-        test_X = tfidf_vectorizer.transform(X_test_processed)
-        return train_X, test_X
-    else: 
-        train_X = tfidf_vectorizer.fit_transform(X_train_processed)
-        return train_X, None
-    
 # # Test Elements
+
+
+
+# Fit and transform the specified text data
 
 if __name__ == "__main__":
     import pandas as pd
     import numpy as np
     from sklearn.linear_model import LinearRegression
+    from sklearn.feature_extraction.text import CountVectorizer
+
+    # Create a TfidfVectorizer instance
+    vectorizer = CountVectorizer()
 
     X = pd.Series({
         0: 'good, I like it', 
         1: '<http. vanilla> happy best*&^#*(&t',
-        2: 'good happy product',
+        2: 'ceramic certain juice rtequila',
         3: '',
         4: '9999',
         5: 'good product'
     })
 
-    lem_X = column_stemmatizer(X)
+    lem_X = new_column_stemmatizer(X)
 
     print(lem_X)
 
-    vectors = tfidf_vectorize_data(lem_X)
+    vectors = vectorizer(lem_X)
 
-    print(vectors[0].shape)
+    vector_df = pd.DataFrame(vectors.todense(), columns=vectorizer.get_feature_names_out())
+
+    print(vector_df[0].shape)
 
     lr = LinearRegression()
 
