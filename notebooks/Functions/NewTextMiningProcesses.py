@@ -91,9 +91,13 @@ def new_column_lemmatizer(text_series):
   
     # Initialize the lemmatizer and stopwords set
     stop_words = set(stopwords.words('english'))
-    with open('best_features_list.csv', 'r') as file:
-        reader = csv.reader(file)
-        go_gauge = next(reader)
+    with open('../full_vocab_list.csv', 'r') as file:
+        csv_list = file.read().strip()
+        go_gauge = csv_list.split(',')
+
+    if isinstance(text_series, str):
+        if text_series.strip() != '':
+            text_series = pd.Series([text_series])
 
     if isinstance(text_series, pd.Series):
         args_list = [
@@ -149,11 +153,15 @@ def new_column_stemmatizer(text_series):
         nltk.download('punkt')
         nltk.download('stopwords')
   
-    # Initialize the lemmatizer and stopwords set
+    # Initialize the stemmatizer and stopwords set
     stop_words = set(stopwords.words('english'))
-    with open('best_features_list.csv', 'r') as file:
-        reader = csv.reader(file)
-        go_gauge = next(reader)
+    with open('../full_vocab_list_stemmed.csv', 'r') as file:
+        csv_list = file.read().strip()
+        go_gauge = csv_list.split(',')
+
+    if isinstance(text_series, str):
+        if text_series.strip() != '':
+            text_series = pd.Series([text_series])
 
     if isinstance(text_series, pd.Series):
         args_list = [
@@ -173,6 +181,79 @@ def new_column_stemmatizer(text_series):
             return lemmed_series
     else:
         raise TypeError('function must take a pd.Series as argument')
+    
+def new_count_vectorize_data(X_train_processed, X_test_processed=None, max_features=None):
+    """
+    This function uses CountVectorizer to vectorize the train and test text datasets ready for sentiment analysis.
+    
+    The function takes preprocessed text data (X_train_processed and X_test_processed) as inputs,
+    inputs are vectorized with the CountVectorizer function from scikit-learn to convert text into 
+    numerical feature vectors, and returns the vectorized train and test data.
+    
+    Parameters:
+    X_train_processed (pd.Series, column format, lemmatized/stemmatized): Preprocessed textual data for training.
+    X_test_processed (pd.Series, column format, lemmatized/stemmatized): Preprocessed textual data for testing.
+    
+    Returns:
+    train_X (scipy.sparse matrix): Vectorized training data.
+    test_X (scipy.sparse matrix): Vectorized testing data.
+
+    The sparse matrix type is handled by most classification/regression models without using the deprecated dense array types.
+
+    """
+    from sklearn.feature_extraction.text import CountVectorizer
+
+    with open('../full_vocab_list.csv', 'r') as file:
+        csv_list = file.read().strip()
+        full_vocab = csv_list.split(',')
+
+    vectorizer = CountVectorizer(max_features=max_features, vocabulary=full_vocab)
+
+    if X_test_processed is not None and X_test_processed.any():
+        train_X = vectorizer.transform(X_train_processed)
+        test_X = vectorizer.transform(X_test_processed)
+        return train_X, test_X
+    else: 
+        train_X = vectorizer.transform(X_train_processed)
+        return train_X
+
+    
+def new_tfidf_vectorize_data(X_train_processed, X_test_processed=None, max_features=None):
+    """
+    Perform TF-IDF processing on the train and test text datasets ready for sentiment analysis.
+
+    The function takes preprocessed text data (X_train_processed and X_test_processed) as inputs,
+    inputs are vectorized with the TFID function from scikit-learn to convert text into 
+    numerical feature vectors, and returns the vectorized train and test data.
+    
+    Parameters:
+    X_train_processed (pd.Series, column format, lemmatized/stemmatized): Preprocessed textual data for training.
+    X_test_processed (pd.Series, column format, lemmatized/stemmatized): Preprocessed textual data for testing.
+    
+    Returns:
+    train_X (scipy.sparse matrix): Vectorized training data.
+    test_X (scipy.sparse matrix): Vectorized testing data.
+
+    The sparse matrix type is handled by most classification/regression models without using the deprecated dense array types.
+    """
+
+    from sklearn.feature_extraction.text import TfidfVectorizer
+
+    with open('../full_vocab_list.csv', 'r') as file:
+        csv_list = file.read().strip()
+        full_vocab = csv_list.split(',')
+
+    # Create a TfidfVectorizer instance
+    tfidf_vectorizer = TfidfVectorizer(vocabulary=full_vocab, max_features=max_features)
+
+    # Fit and transform the specified text data
+    if X_test_processed is not None and X_test_processed.any():
+        train_X = tfidf_vectorizer.fit_transform(X_train_processed)
+        test_X = tfidf_vectorizer.transform(X_test_processed)
+        return train_X, test_X
+    else: 
+        train_X = tfidf_vectorizer.fit_transform(X_train_processed)
+        return train_X
 
 # # Test Elements
 
@@ -185,9 +266,14 @@ if __name__ == "__main__":
     import numpy as np
     from sklearn.linear_model import LinearRegression
     from sklearn.feature_extraction.text import CountVectorizer
+    import csv
+
+    with open('../full_vocab_list.csv', 'r') as file:
+        csv_list = file.read().strip()
+        header_list = csv_list.split(',')
 
     # Create a TfidfVectorizer instance
-    vectorizer = CountVectorizer()
+    # vectorizer = CountVectorizer(vocabulary=header_list)
 
     X = pd.Series({
         0: 'good, I like it', 
@@ -198,15 +284,15 @@ if __name__ == "__main__":
         5: 'good product'
     })
 
-    lem_X = new_column_stemmatizer(X)
+    lem_X = new_column_lemmatizer(X)
 
     print(lem_X)
 
-    vectors = vectorizer(lem_X)
+    vectors = new_tfidf_vectorize_data(lem_X)
 
-    vector_df = pd.DataFrame(vectors.todense(), columns=vectorizer.get_feature_names_out())
+    vector_df = pd.DataFrame(vectors.todense(), columns=header_list)
 
-    print(vector_df[0].shape)
+    print(vector_df.shape)
 
     lr = LinearRegression()
 
@@ -219,7 +305,7 @@ if __name__ == "__main__":
         5: 0
     })
 
-    lr.fit(vectors[0], y)
+    lr.fit(vectors, y)
 
-    print(lr.score(vectors[0], y))
+    print(lr.score(vectors, y))
 

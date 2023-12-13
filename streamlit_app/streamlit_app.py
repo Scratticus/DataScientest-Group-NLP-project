@@ -101,9 +101,12 @@ def new_column_lemmatizer(text_series):
   
     # Initialize the lemmatizer and stopwords set
     stop_words = set(stopwords.words('english'))
-    with open('best_features_list.csv', 'r') as file:
+    with open('../notebooks/best_features_list.csv', 'r') as file:
         reader = csv.reader(file)
         go_gauge = next(reader)
+
+    if isinstance(text_series, object):
+        text_series = pd.Series([text_series])
 
     if isinstance(text_series, pd.Series):
         args_list = [
@@ -125,17 +128,19 @@ def new_column_lemmatizer(text_series):
 # Load the data
 @st.cache_data
 def load_data():
-    df = pd.read_csv('C:/Documents/Code/Workspaces/Streamlit Stuff/train.csv')
+    df = pd.read_csv('../data/train.csv')
     return df
 @st.cache_data
 def load_best_models():
-    with open('RFBestModel.pkl', 'rb') as file:
-        rf_model = pickle.read(file)
-    with open('HBGRBestModel.pkl', 'rb') as file:
-        hgbr_model = pickle.read(file)
-    with open('LogisticBestModel.pkl', 'rb') as file:
-        logistic_model = pickle.read(file)
+    with open('../notebooks/Classification/RFBestModel.pkl', 'rb') as file:
+        rf_model = pickle.load(file)
+    with open('../notebooks/HGBRBestModel.pkl', 'rb') as file:
+        hgbr_model = pickle.load(file)
+    with open('../notebooks/Classification/LogisticBestModel.pkl', 'rb') as file:
+        logistic_model = pickle.load(file)
     return rf_model, hgbr_model, logistic_model
+
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 df = load_data()
 rf_model, hgbr_model, logistic_model = load_best_models()
@@ -193,15 +198,17 @@ if page == pages[1] :
         }
 
         column_df = pd.DataFrame(column_dict)
+        column_df = column_df.set_index("Column Heading")
         return column_df
     
     @st.cache_data
     def ratings():
         rating_dict = {
-            "Rating (Target)": [5, 4, 3, 2, 1],
+            "overall (Rating column - Target)": [5, 4, 3, 2, 1],
             "Percentage of Reviews": ['69%', '13%', '5%', '3%', '10%']
         }
         rating_df = pd.DataFrame(rating_dict)
+        rating_df = rating_df.set_index("overall (Rating column - Target)")
         return rating_df
 
     st.title("Dataset Quality")
@@ -222,9 +229,8 @@ if page == pages[1] :
              that the data will need to be sampled to increase classification accuracy. 69% of the \
              reviews awarded a rating of 5, which indicates that a very basic model that simply calls \
              every review 5 stars will be 69% accurate against this data.')
-    st.write('> # Our baseline Accuracy is 69%')
-    st.write('> assuming all reviews are assigned rating 5.')
-    st.image('../../images/ReportImages/OverallRatingDistribution.jpg', caption='Rating Distribution', use_column_width=True)
+    st.write(f'#### Our baseline Accuracy is 69% \nassuming all reviews are assigned rating 5.')
+    st.image('../images/ReportImages/OverallRatingDistribution.jpg', caption='Rating Distribution', use_column_width=True)
     st.markdown('## Dataset Preprocessing')
     st.write("To achieve the best possible results from the dataset it is essential to reduce and format\
             the dataset into a data type and format that enables the models to genersate the best possible\
@@ -282,7 +288,7 @@ if page == pages[1] :
                     * Accuracy: 0.284\n \
                     * Mean Squared Error: 0.271')
             st.write('Lasso alpha values between 0.001 and 0.3 were tested simultaneously.')
-            st.image('../../images/lasso_alphas.png', use_column_width=True)
+            st.image('../images/lasso_alphas.png', use_column_width=True)
         elif sample_display == 'Ridge Regression':
             st.write('The best Ridge results were provided by:\n \
                     * Lemmatizer Count Vector with RandomOverSampler sampling:\n \
@@ -294,7 +300,7 @@ if page == pages[1] :
             st.write('Ridge alpha values between 0.001 and 0.3 were tested simultaneously. Though \
                     0.001 has the best accuracy, 0.3 was take forward as the Mean Squared Error nearly tripled \
                     at lower alphas.')
-            st.image('../../images/ridge_alphas.png', use_column_width=True)
+            st.image('../images/ridge_alphas.png', use_column_width=True)
         elif sample_display == 'ElasticNet Regression':
             st.write('The best ElasticNet results were provided by:\n \
                     * Lemmatizer Count Vector with RandomOverSampler sampling:\n \
@@ -305,8 +311,8 @@ if page == pages[1] :
                     ** Mean Squared Error: 1.577')
             st.write('ElasticNet alpha values between 0.001 and 0.3 and L1 ratio values between 0.3 and 0.7 were \
                     tested simultaneously.')
-            st.image('../../images/enet_alphas.png', use_column_width=True)
-            st.image('../../images/enet_l1_ratios.png', use_column_width=True)
+            st.image('../images/enet_alphas.png', use_column_width=True)
+            st.image('../images/enet_l1_ratios.png', use_column_width=True)
         elif sample_display == 'HGBC Regression':
             st.write('The best HGBC results were provided by:\n \
                     * Lemmatizer TFIDF Vector with RandomOverSampler sampling:\n \
@@ -317,8 +323,8 @@ if page == pages[1] :
                     ** Mean Squared Error: 1.351')
             st.write('HGBC learning rate values between 0.1 and 0.5 and max depths between 50 and 1000 were \
                     tested simultaneously.')
-            st.image('../../images/hgbr_learn_rate.png', use_column_width=True)
-            st.image('../../images/hgbr_max_depth.png', use_column_width=True)
+            st.image('../images/hgbr_learn_rate.png', use_column_width=True)
+            st.image('../images/hgbr_max_depth.png', use_column_width=True)
     elif sampler_display == 'Synthetic Minority Over Sampling Technique':
         sample_display = st.radio('Which model do you want to view?', (
             'Linear Regression',
@@ -335,7 +341,7 @@ if page == pages[1] :
                     ** Mean Squared Error: 1.98')
             st.write('Though 500 k_neighbors has the best accuracy, 1000 was take forward as the \
                      Mean Squared Error and R Squared values (not shown) were better.')
-            st.image('../../images/lr_smote_k_neighbors.png', use_column_width=True)
+            st.image('../images/lr_smote_k_neighbors.png', use_column_width=True)
         elif sample_display == 'Lasso Regression':
             st.write('Smote K_Neighbours were tested between 5 and 1000:\n \
                     * English Stemmer TFIDF Vector - 500 k_neighbors\n \
@@ -344,19 +350,19 @@ if page == pages[1] :
                     * Lemmatizer Count Vector - 1000 k_neighbors\n \
                     ** Accuracy: 0.211\n \
                     ** Mean Squared Error: 1.54')
-            st.image('../../images/lasso_smote_k_neighbors.png', use_column_width=True)
+            st.image('../images/lasso_smote_k_neighbors.png', use_column_width=True)
         elif sample_display == 'Ridge Regression':
             st.write('Smote K_Neighbours were tested between 5 and 1000:\n \
                     * Lemmatizer TFIDF Vector - 1000 k_neighbors\n \
                     ** Accuracy: 0.490\n \
                     ** Mean Squared Error: 1.081')
-            st.image('../../images/ridge_smote_k_neighbors.png', use_column_width=True)
+            st.image('../images/ridge_smote_k_neighbors.png', use_column_width=True)
         elif sample_display == 'ElasticNet Regression':
             st.write('Smote K_Neighbours were tested between 5 and 1000:\n \
                     * Lemmatizer Count Vector - 1000 k_neighbors\n \
                     ** Accuracy: 0.237\n \
                     ** Mean Squared Error: 1.489')
-            st.image('../../images/enet_smote_k_neighbors.png', use_column_width=True)
+            st.image('../images/enet_smote_k_neighbors.png', use_column_width=True)
         elif sample_display == 'HGBC Regression':
             st.write('Smote K_Neighbours were tested between 5 and 1000:\n \
                     * Lemmatizer Count Vector - 50 k_neighbors\n \
@@ -368,7 +374,7 @@ if page == pages[1] :
                     * Lemmatizer TFIDF Vector - 100 k_neighbors\n \
                     ** Accuracy: 0.0.446\n \
                     ** Mean Squared Error: 1.176')
-            st.image('../../images/hgbr_smote_k_neighbors.png', use_column_width=True)
+            st.image('../images/hgbr_smote_k_neighbors.png', use_column_width=True)
     elif sampler_display == 'Cluster Centroids':
         st.write('Although it was suspected that the Cluster Centroids sampler would perform well\n \
                 if the dataset responds well to classification techniques, instead the method have very little \
@@ -379,25 +385,25 @@ if page == pages[1] :
             'ElasticNet Regression',
             'HGBC Regression'))
         if sample_display == 'Linear Regression':
-            st.image('../../images/lr_cc_n_clusters.png', use_column_width=True)
+            st.image('../images/lr_cc_n_clusters.png', use_column_width=True)
         elif sample_display == 'Lasso Regression':
-            st.image('../../images/lasso_cc_n_clusters.png', use_column_width=True)
+            st.image('../images/lasso_cc_n_clusters.png', use_column_width=True)
         elif sample_display == 'Ridge Regression':
-            st.image('../../images/ridge_cc_n_clusters.png', use_column_width=True)
+            st.image('../images/ridge_cc_n_clusters.png', use_column_width=True)
         elif sample_display == 'ElasticNet Regression':
-            st.image('../../images/enet_cc_n_clusters.png', use_column_width=True)
+            st.image('../images/enet_cc_n_clusters.png', use_column_width=True)
         elif sample_display == 'HGBC Regression':
-            st.image('../../images/hgbr_cc_n_clusters.png', use_column_width=True)
+            st.image('../images/hgbr_cc_n_clusters.png', use_column_width=True)
     
 if page == pages[2]:
     @st.cache_data
     def Regression_Bests():
         regression_dict = {
-            "Model": ['HGBR: Learning Rate = 0.5, Max Depth = 1000', 
-                      'Ridge: Alpha = 0.3',
+            "Model": ['HGBR', 
+                      'Ridge',
                       'Linear Regression',
-                      'Lasso:, Alpha = 0.001',
-                      'ElasticNet:, Alpha = 0.001, L1 ratio = 0.3'
+                      'Lasso:',
+                      'ElasticNet:'
             ],
             "Token Method": [
                 'lemmatized',
@@ -415,8 +421,8 @@ if page == pages[2]:
             ],
             "Sampler": [
                 'None',
-                'Smote: k_neighbors = 1000',
-                'Smote: k_neighbors = 1000',
+                'Smote',
+                'Smote',
                 'None',
                 'RandomOverSampler',
             ],
@@ -493,12 +499,49 @@ if page == pages[2]:
     @st.cache_data
     def concat_two_dfs_vertical():
         df1 = Regression_Bests()
-        df1['ModelClass'] = 'Regression'
         df2 = Classification_Bests()
-        df2['ModelClass'] = 'Classification'
         concat_df = pd.concat([df1, df2])
-        group_classif_df = concat_df.sortby("Mean Test Accuracy")
-        return group_classif_df
+        train_df = concat_df[[
+            'Model',
+            'Token Method', 
+            'Vector Method', 
+            'Sampler', 
+            "Mean Train Accuracy",
+            "Mean Train Precision",
+            "Mean Train Recall",
+            "Mean Train F1 Score",
+            "Mean Train R Squared",
+            "Mean Train Mean Squared Error"]].copy()
+        train_df['Accuracy Type'] = 'Train'
+        train_df = train_df.rename(columns={"Mean Train Accuracy": "Accuracy",
+            "Mean Train Precision": "Precision",
+            "Mean Train Recall": "Recall",
+            "Mean Train F1 Score": "F1 Score",
+            "Mean Train R Squared": "R Squared",
+            "Mean Train Mean Squared Error": "Mean Squared Error"})
+        test_df = concat_df[[
+            'Model',
+            'Token Method', 
+            'Vector Method', 
+            'Sampler', 
+            "Mean Test Accuracy",
+            "Mean Test Precision",
+            "Mean Test Recall",
+            "Mean Test F1 Score",
+            "Mean Test R Squared",
+            "Mean Test Mean Squared Error"]].copy()
+        test_df['Accuracy Type'] = 'Test'
+        test_df = test_df.rename(columns={"Mean Test Accuracy": "Accuracy",
+            "Mean Test Precision": "Precision",
+            "Mean Test Recall": "Recall",
+            "Mean Test F1 Score": "F1 Score",
+            "Mean Test R Squared": "R Squared",
+            "Mean Test Mean Squared Error": "Mean Squared Error"})
+        concat_with_acc_type = pd.merge(train_df, test_df, how='outer')
+        grouped_concat = concat_with_acc_type.groupby(['Model', 'Token Method', 'Vector Method', 'Sampler', 'Accuracy Type']).max()
+        grouped_concat = grouped_concat[['Accuracy', 'Precision', 'Recall', 'F1 Score', 'R Squared', 'Mean Squared Error']]
+        grouped_concat = grouped_concat.sort_values(by="Accuracy", ascending=False).reset_index()
+        return grouped_concat
     
     @st.cache_data
     def Word2Vec_df():
@@ -528,9 +571,11 @@ if page == pages[2]:
     @st.cache_resource()
     def plot_and_show_accuracy_by_model():
         data = concat_two_dfs_vertical()
-        data_melted = pd.melt(data, id_vars=["Model", "ModelClass"], var_name="Accuracy Type", value_name="Accuracy")
-        fig = sns.barplot(x='Model', y='Accuracy', hue='Accuracy Type', data=data_melted)
-        st.pyplot(fig)
+        fig = sns.catplot(x='Model', y='Accuracy', hue='Accuracy Type', data=data, kind='bar')
+        plt.xticks(rotation=90)
+        plt.title('Accuracies by Model')
+
+        return fig
     
     st.title("Modelling")
     st.write(' In this report several Classification and Regression Models are compared using data \
@@ -544,7 +589,7 @@ if page == pages[2]:
             * Random Forest Classifier \n \
             * Naïve Bayes \n \
             * Histogram Gradient Boosting Classifier')
-    st.markdown('# regression Models')
+    st.markdown('# Regression Models')
     st.write('The Models being compared include: \n \
             * Linear Regression \n \
             * Lasso \n \
@@ -566,7 +611,7 @@ if page == pages[2]:
             runtimes whilst operating on reasonably sized datasets.')
     st.markdown('# Model Comparisons')
     st.dataframe(concat_two_dfs_vertical())
-    st.image(plot_and_show_accuracy_by_model())
+    st.pyplot(plot_and_show_accuracy_by_model())
     st.markdown('# Results Analysis')
     st.write('The results clearly show that Classification techniques are more suited to the text data, however \
             none of the results are strong enough to clearly define the models as better than a basic model. The \
@@ -576,7 +621,7 @@ if page == pages[2]:
             class 5.\n \
             77% Accuracy is only 8% better than a model that returns class 5 for every prediction and so this model \
             can not be considered very strong.')
-    st.image('../../images/SVMBestConfMatrix.png', caption='Best Model Accuracy (SVM) Confusion Matrix', use_column_width=True)
+    st.image('../images/SVMBestConfMatrix.png', caption='Best Model Accuracy (SVM) Confusion Matrix', use_column_width=True)
     st.markdown('## Google Word 2 Vector Analysis')
     st.write('The google Word 2 Vector Vectorizer is a text processor that relates words together to support the \
             google search engine. Though the model is designed for search engine modelling rather than sentiment \
@@ -591,8 +636,8 @@ if page == pages[2]:
             Due to time constraints in the project, only two models with low processing times were modelled with the \
             word to vec text process, and no word stemming was used.')
     st.dataframe(Word2Vec_df())
-    st.image('../../images/lrW2VConfMatrix.png', caption='Logistic Regression Word 2 Vector Confusion Matrix', use_column_width=True)
-    st.image('../../images/rfW2VConfMatrix.png', caption='Random Forest Word 2 Vector Confusion Matrix', use_column_width=True)
+    st.image('../images/lrW2VConfMatrix.png', caption='Logistic Regression Word 2 Vector Confusion Matrix', use_column_width=True)
+    st.image('../images/rfW2VConfMatrix.png', caption='Random Forest Word 2 Vector Confusion Matrix', use_column_width=True)
     st.write('Like the regression modelling, the score has worsened in comparison to the target baseline accuracy of 69%. \
             This is most likely due to the mismatch of the search engine preprocessing model and the sentiment analysis \
             modelling that is being performed. It is possible to customize the Word 2 Vec process and this is likely a \
@@ -624,7 +669,7 @@ if page == pages[3]:
     st.write('Additional use cases could include a tool which predicts the rating of a review either for the customer or more \
             for a company who have unrated reviews, either through lack of rating system or through data quality issues.')
     st.markdown('# Example Model')
-    model_type_selection = st.selectbox("Choose a model type:" ["Classification", "Regression"])
+    model_type_selection = st.selectbox("Choose a model type:", ["Classification", "Regression"])
     if model_type_selection == "Classification":
         model_selection = st.selectbox('Use the model below to compare modelling results:', ["Logistic Regression", "HistGradientBoosting Regressor"])
         if model_selection == "Logistic Regression":
