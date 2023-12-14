@@ -632,4 +632,26 @@ if page == pages[4]:
     st.markdown("In light of the poor results, some additional work was undertaken as a contribution to the next steps of the project. \
                 These investigations were heavily time constricted, so only the 'low hanging fruit' options were investigated.")
     st.markdown("### Improving Preprocessing")
-    st.markdown
+    st.markdown("The greatest potential improvement in preprocessing lies in the perceived removal of diffusion. Since sampling worsened the\
+                scores across the board, it can be assumed that the data contains a lot of unimportant features which are being falsely replicated, few important features\
+                which are not being fairly replicated due to the accompanying noise, or a combination of the two. As such a feature extraction process should help the models\
+                to extract the relationships between the most important features.")
+    st.markdown("Ideally, an Recursive Feature Elimnation (RFE) with Cross Validation (RFECV) could be run on the vocabulary to identified the words that have the greatest validated\
+                on the results. However the RFECV takes a long time to run, each step trains the chosen estimator against the split dataset, tests the\
+                results against the remainder of the dataset and all steps are repeated by the number of cross validations. On top of this there \
+                is some computational conglomeration time to consider. For a detailed study this will take an extremely long time, more time than is realistically available in the tenure of this project.")
+    st.markdown("Instead a simple RFE was run on the entire dataset by quarters. The chosen estimator was the Random Forest Estimator which had the best Test Accuracy scores.\
+                a step of 1000 was implemented with a desired number of features set to 3000.")
+    st.markdown("The 4 quarters produced a list of most important words which were merged to created 1 list of 3922 features length. A reduction from 28,822 features to 3,922.")
+    st.markdown("The extracted features were parsed through the custom lemmatizer function, instead of using English stop words as a no-go gauge, the function was inverted and the \
+                important feature list was implemented as a go through gauge. In this way the model only considered words that were deemed important by the RFE process.")
+    st.markdown("The Reduced feature Random Forest Accuracy and Mean Squared Error did not improve. The Accuracy reduced to 67.8% and the Mean Squared Error increased to 2.30. \
+                This indicates that this feature selection has hurt the modelling process more than it has improved it as the accuracy has now fallen below the baseline accuracy.")
+    st.markdown("##### Alternate Preprocessing steps")
+    st.markdown("During the investigation, the quality of the dataset was brought into question. Another avenue of exploration would be to expand the dataset fed to the models.\
+                The ideal Dataset would consist of an amalgamation of categories from the amazon directory, using a sampling method which harvests a good distribution of target variables.\
+                Ideally the data would be amalgamated into one dataset which is reasonably well balanced and of considereable size. Two million records would be a conservative estimate.\
+                With this many records and more balance than present in the current module, all function processes should be easier. From preprocessing, to modelling, including the \
+                feature extraction attempted in this further work. Working with this much data will require mass data handling and a pySpark or similar solution would need to be implemented \
+                to make analyses possible.")
+    st.markdown("### Improving Modelling")
