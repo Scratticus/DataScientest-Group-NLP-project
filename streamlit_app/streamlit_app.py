@@ -1,3 +1,9 @@
+import sys
+sys.path.append('../notebooks/Functions')
+
+from NewTextMiningProcesses import new_column_lemmatizer, new_column_stemmatizer, new_count_vectorize_data, new_tfidf_vectorize_data
+
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,123 +13,6 @@ import seaborn as sns
 import pickle
 import joblib
 import os
-
-def text_stemmer(tokens, stemmer, go_gauge):
-    from nltk.stem import WordNetLemmatizer
-    from nltk.stem.snowball import EnglishStemmer
-    if stemmer == 'lemmatizer':
-        lemmatizer = WordNetLemmatizer()
-        stem_string = ''
-        for token in tokens:
-            if token and token in go_gauge:
-                stemmed_word = lemmatizer.lemmatize(token)
-                stem_string += stemmed_word + ' '    
-        stem_string = stem_string.strip()
-        return stem_string
-    elif stemmer == 'stemmatizer':
-        stemmat = EnglishStemmer()
-        stem_string = ''
-        for token in tokens:
-            if token and token in go_gauge:
-                stemmed_word = stemmat.stem(token)
-                stem_string += stemmed_word + ' '    
-        stem_string = stem_string.strip()
-        return stem_string
-    else:
-        raise ValueError('Unsupported text stemmer passed')
-        
-def preprocess_items(text, tokenizer, spell_checker):
-    import re
-    import pandas as pd
-    import nltk
-    from nltk.tokenize.regexp import RegexpTokenizer
-
-    if isinstance(text, str):
-        item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', text)
-        item_tokens = tokenizer.tokenize(item_no_tags.lower())
-        token_list = []
-        for token in item_tokens:
-            corrected_token = spell_checker.correction(token.strip())
-            token_list.append(corrected_token)
-        return token_list
-    
-def process_item(text, tokenizer, spell_checker, stemmer, go_gauge):
-    tokens = preprocess_items(text=text, tokenizer=tokenizer, spell_checker=spell_checker)
-    stemmed_string = text_stemmer(tokens=tokens, stemmer=stemmer, go_gauge=go_gauge)
-    if stemmed_string is None:
-        stemmed_string = ''
-    return stemmed_string
-
-def process_item_wrapper(args):
-    item = args[0]
-    tokenizer = args[1]
-    spell_checker = args[2]
-    stemmer = args[3]
-    go_gauge = args[4]
-    return process_item(text=item, tokenizer=tokenizer, spell_checker=spell_checker, stemmer=stemmer, go_gauge=go_gauge)
-            
-def new_column_lemmatizer(text_series):
-    """
-    This function preprocesses a pandas Series of sentences, typically taken from a dataframe column and prepares them for classification/regression modelling
-    by tokenizing, removing stop words, and lemmatizing the series.
-    
-    Args:
-    text_series (pd.Series): Input pandas Series containing sentences.
-    
-    Returns:
-    pd.Series: Processed Series containing lemmatized words.
-
-    Example:
-    df['to_be_lemmed'] = pd.Series({0: 'I like this', 1: 'good times'})
-    df['lems'] = column_stemmatizer(df['to_be_lemmed'])
-
-    returns:
-    df['lems'] = pd.Series({0: ['like'], 1: ['good', 'time']})
-    """
-    import pandas as pd
-    import nltk
-    from nltk.corpus import stopwords
-    from nltk.tokenize.regexp import RegexpTokenizer
-    from spellchecker import SpellChecker
-    from tqdm import tqdm
-    import csv
-
-    from spellchecker import SpellChecker
-    from tqdm import tqdm
-    from concurrent.futures import ProcessPoolExecutor
-    
-    tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
-    spell_checker = SpellChecker()
-    # Download NLTK resources
-    if not nltk.corpus.stopwords.fileids():
-        nltk.download('punkt')
-        nltk.download('stopwords')
-  
-    # Initialize the lemmatizer and stopwords set
-    stop_words = set(stopwords.words('english'))
-    with open('../notebooks/best_features_list.csv', 'r') as file:
-        reader = csv.reader(file)
-        go_gauge = next(reader)
-
-    if isinstance(text_series, object):
-        text_series = pd.Series([text_series])
-
-    if isinstance(text_series, pd.Series):
-        args_list = [
-            (item, tokenizer, spell_checker, 'lemmatizer', go_gauge)
-            for item in text_series
-        ]
-
-        # If 'reviewText' is a list, apply the function to each element of the list
-        with ProcessPoolExecutor() as executor:
-            lemmed_cells = list(executor.map(process_item_wrapper, args_list)
-            )
-
-            lemmed_series = pd.Series(lemmed_cells)
-
-            return lemmed_series
-    else:
-        raise TypeError('function must take a pd.Series as argument')
 
 # Load the data
 @st.cache_data
@@ -153,35 +42,33 @@ page = st.sidebar.radio("Go to", pages)
 
 if page == pages[0]:
     st.title('Project Goals')
-    st.markdown('# Abstract')
-    st.write('This report compares methods of datamining the text from Customer Reviews and \
+    st.markdown('## Abstract')
+    st.markdown('This report compares methods of datamining the text from Customer Reviews and \
             the Accuracy of Rating predictions from 1 to 5 stars. This report satisfies the \
             business need to identify the best model to accurately classify Customer reviews \
             into a rating. The report aims to save future studies time in computation \
             comparisons by finding the best preprocessing methods and the best models to \
-            classify reports by rating. \n')
-    st.write('The findings of this report could be implemented in several use cases:\n \
-            * Generate an automated rating system, which offers customers a pre-generated \
-            star rating based on the content of their review. \n \
-            * Identify Reviews which are incorrectly rated, to remove them from further \
-            analyses or submit them to further analyses. \n \
-            * Classify reviews which are no longer associated with their original rating, \
-            or reviews which are not part of a rating system. \n \
-            ** Sort reviews for customer service customer response Management to organize \
-            reviews by priority. \n \
-            ** Classify reviews for automated CRM Tools enabling automated responses to \
-            reviews based on predicted rating.')
-    st.markdown('# Introduction')
-    st.write('This report analyses data from Amazon reviews from the Appliances Category, \
+            classify reports by rating.  ')
+    st.markdown('The findings of this report could be implemented in several use cases:  ')
+    st.markdown("* Generate an automated rating system, which offers customers a pre-generated \
+            star rating based on the content of their review.   ")
+    st.markdown("* Identify Reviews which are incorrectly rated, to remove them from further \
+            analyses or submit them to further analyses.   ")
+    st.markdown("""* Classify reviews which are no longer associated with their original rating,
+    or reviews which are not part of a rating system.  
+    * Sort reviews for customer service customer response Management to organize reviews by priority.  
+    * Classify reviews for automated CRM Tools enabling automated responses to reviews based on predicted rating.""")
+    st.markdown('## Introduction')
+    st.markdown("This report analyses data from Amazon reviews from the Appliances Category, \
              the data was originally collected in 2014 and most recently updated in 2018. \
              Though the data has been parsed for NLP usage, extra Data Cleaning and preprocessing \
              is required to enable the variety of modelling techniques that will be tested in \
-             the main report. \n \
-             The features will be derived from the review text of each review in the data and the \
+             the main report.  ")
+    st.markdown("The features will be derived from the review text of each review in the data and the \
              target variable is the rating from 1-5 stars. In this report, the feature text data \
-             will be checked for duplicates and NaN values, and vectorized. \n \
-             Other columns will also be processed to enable further investigations and project \
-             expansions.')
+             will be checked for duplicates and NaN values, and vectorized.  ")
+    st.markdown("Other columns will also be processed to enable further investigations and project \
+             expansions.")
 
 if page == pages[1] :
     @st.cache_data
@@ -212,48 +99,49 @@ if page == pages[1] :
         return rating_df
 
     st.title("Dataset Quality")
-    st.markdown('# Data Source')
-    st.write('Source Citation:\n \
-            > Justifying recommendations using distantly-labeled reviews and fined-grained aspects \n \
-            > Jianmo Ni, Jiacheng Li, Julian McAuley \n \
-            > _Empirical Methods in Natural Language Processing (EMNLP), 2019_')
-    st.write('From this data, only the appliance reviews were utilized for this project. These were \
+    st.markdown('## Data Source')
+    st.markdown("#### Source Citation:")
+    st.markdown("""> **Justifying recommendations using distantly-labeled reviews and fined-grained aspects**  
+> Jianmo Ni, Jiacheng Li, Julian McAuley  
+> _Empirical Methods in Natural Language Processing (EMNLP), 2019_""")
+    st.markdown('From this data, only the appliance reviews were utilized for this project. These were \
              selected as the number of records is between 500k and 1m records. This criterion was \
              estimated to ensure that enough data is present to produce a well-fitting model, but \
              not so many that computational times will exceed 24 hours.')
-    st.write('# Data Overview')
+    st.markdown('## Data Overview')
     st.dataframe(load_synopsis())
-    st.markdown('## Target Data Balance')
+    st.markdown('### Target Data Balance')
     st.dataframe(ratings())
-    st.write('The target column ‘overall’ is imbalanced, as shown by the graph above. This indicates \
+    st.markdown('The target column ‘overall’ is imbalanced, as shown by the graph above. This indicates \
              that the data will need to be sampled to increase classification accuracy. 69% of the \
              reviews awarded a rating of 5, which indicates that a very basic model that simply calls \
              every review 5 stars will be 69% accurate against this data.')
-    st.write(f'#### Our baseline Accuracy is 69% \nassuming all reviews are assigned rating 5.')
+    st.markdown(f"""> ##### Our baseline Accuracy is 69%
+> assuming all reviews are assigned rating 5.""")
     st.image('../images/ReportImages/OverallRatingDistribution.jpg', caption='Rating Distribution', use_column_width=True)
-    st.markdown('## Dataset Preprocessing')
-    st.write("To achieve the best possible results from the dataset it is essential to reduce and format\
+    st.markdown('### Dataset Preprocessing')
+    st.markdown("To achieve the best possible results from the dataset it is essential to reduce and format\
             the dataset into a data type and format that enables the models to genersate the best possible\
-            accuracies.\n \
-            The reviews include html tags for videos and images if any were included in the review \
+            accuracies.  ")
+    st.markdown("The reviews include html tags for videos and images if any were included in the review \
             This text must be removed, as must any text including numbers, misspellings must be converted \
             to the correct spelling and tokenised. To achieve these results, Regex, pyspellchecker and the \
             RegExTokenizer were used to pre process the text in each review In addition to this the reviews\
             were compared to nltk's English stopwords and stopwords were removed.")
-    st.write('Several further methods were implemented to ready the dataset for modelling. These included \
+    st.markdown('Several further methods were implemented to ready the dataset for modelling. These included \
             WordNetLemmatizer and the ENglishStemmer from the nltk.stem library. These models reduce the words to \
             roots of the word in different formats. To enable machine learning on these stemming methods, \
             the datasets need to be converted to number vectors and a further two models in the CountVectorizer \
             and TFIDF Vectorizer from sci-kit Learns text library.')
-    st.write("The data was also vectorized using Google's Word2Vec model, which did not use the stemmers to produce \
+    st.markdown("The data was also vectorized using Google's Word2Vec model, which did not use the stemmers to produce \
             vectors.")
-    st.markdown("# A Note on Sampling")
-    st.write("It is obvious that the dataset is imbalanced, analysis was also performed on 4 samplers to see \
+    st.markdown("## A Note on Sampling")
+    st.markdown("It is obvious that the dataset is imbalanced, analysis was also performed on 4 samplers to see \
             which would be the most beneficial to the models, however the model quality was too poor for the \
             sampling results to be valid and so sampling was not well rated. Instead models are attuned on raw \
             unless an improvement is seen through smapling and oversampling techniques are largely dropped due \
             to data/working memory limitations.")
-    st.write('Although the samplers proved to be unuseful, each one had a gridsearch performed to identify the maximum \
+    st.markdown('Although the samplers proved to be unuseful, each one had a gridsearch performed to identify the maximum \
             potential sample with the given parameters.')
     
     options = {
@@ -268,60 +156,59 @@ if page == pages[1] :
         'Cluster Centroids'
     ))
     if sampler_display == 'RandomOverSampler, RandomUndersampler, no sampling':
-        st.write('For the simpler models a simple best accuracy with the selected Sampler was taken. \
+        st.markdown('For the simpler models a simple best accuracy with the selected Sampler was taken. \
                 For models with several arguments to be tested, these were tested simultaneously with \
                 the sampler gridsearch to save computation in later more complex tests. These parameters \
                 were graphed when available.')
         sample_display = st.radio('Which model do you want to view?', (
             'Linear Regression',
             'Lasso Regression',
+            'Ridge Regression',
             'ElasticNet Regression',
             'HGBC Regression'))
         if sample_display == 'Linear Regression':
-            st.write('The best results were returned by the English Stemmer TFIDF Vector text processes which \
-                    were sampled by the RandomOverSampler.\n \
-                    * Accuracy: 0.525\n \
-                    * Mean Squared Error: 2.020')
+            st.markdown("""The best results were returned by the English Stemmer TFIDF Vector text processes which were sampled by the RandomOverSampler.  
+* Accuracy: 0.525
+* Mean Squared Error: 2.020""")
         elif sample_display == 'Lasso Regression':
-            st.write('The best Lasso results were provided by the lemmatized Count Vector processes \
-                    with no sampling.\n \
-                    * Accuracy: 0.284\n \
-                    * Mean Squared Error: 0.271')
-            st.write('Lasso alpha values between 0.001 and 0.3 were tested simultaneously.')
+            st.markdown("""The best Lasso results were provided by the lemmatized Count Vector processes with no sampling.  
+* Accuracy: 0.284
+* Mean Squared Error: 0.271""")
+            st.markdown('Lasso alpha values between 0.001 and 0.3 were tested simultaneously.')
             st.image('../images/lasso_alphas.png', use_column_width=True)
         elif sample_display == 'Ridge Regression':
-            st.write('The best Ridge results were provided by:\n \
-                    * Lemmatizer Count Vector with RandomOverSampler sampling:\n \
-                    ** Accuracy: 0.557\n \
-                    ** Mean Squared Error: 2.915\n \
-                    * Lemmatizer TFIDF Vector with RandomOverSampler sampling:\n \
-                    ** Accuracy: 0.478\n \
-                    ** Mean Squared Error: 1.11')
-            st.write('Ridge alpha values between 0.001 and 0.3 were tested simultaneously. Though \
+            st.markdown("""The best Ridge results were provided by:  
+* Lemmatizer Count Vector with RandomOverSampler sampling:  
+    * Accuracy: 0.557  
+    * Mean Squared Error: 2.915  
+* Lemmatizer TFIDF Vector with RandomOverSampler sampling:
+    * Accuracy: 0.478
+    * Mean Squared Error: 1.11""")
+            st.markdown('Ridge alpha values between 0.001 and 0.3 were tested simultaneously. Though \
                     0.001 has the best accuracy, 0.3 was take forward as the Mean Squared Error nearly tripled \
                     at lower alphas.')
             st.image('../images/ridge_alphas.png', use_column_width=True)
         elif sample_display == 'ElasticNet Regression':
-            st.write('The best ElasticNet results were provided by:\n \
-                    * Lemmatizer Count Vector with RandomOverSampler sampling:\n \
-                    ** Accuracy: 0.318\n \
-                    ** Mean Squared Error: 1.406\n \
-                    * Lemmatizer Count Vector with no sampling:\n \
-                    ** Accuracy: 0.296\n \
-                    ** Mean Squared Error: 1.577')
-            st.write('ElasticNet alpha values between 0.001 and 0.3 and L1 ratio values between 0.3 and 0.7 were \
+            st.markdown("""The best ElasticNet results were provided by:  
+* Lemmatizer Count Vector with RandomOverSampler sampling:  
+    * Accuracy: 0.318  
+    * Mean Squared Error: 1.406  
+* Lemmatizer Count Vector with no sampling:  
+    * Accuracy: 0.296  
+    * Mean Squared Error: 1.577""")
+            st.markdown('ElasticNet alpha values between 0.001 and 0.3 and L1 ratio values between 0.3 and 0.7 were \
                     tested simultaneously.')
             st.image('../images/enet_alphas.png', use_column_width=True)
             st.image('../images/enet_l1_ratios.png', use_column_width=True)
         elif sample_display == 'HGBC Regression':
-            st.write('The best HGBC results were provided by:\n \
-                    * Lemmatizer TFIDF Vector with RandomOverSampler sampling:\n \
-                    ** Accuracy: 0.499\n \
-                    ** Mean Squared Error: 1.351\n \
-                    * Lemmatizer TFIDF Vector with no sampling:\n \
-                    ** Accuracy: 0.410\n \
-                    ** Mean Squared Error: 1.351')
-            st.write('HGBC learning rate values between 0.1 and 0.5 and max depths between 50 and 1000 were \
+            st.markdown("""The best HGBC results were provided by:  
+* Lemmatizer TFIDF Vector with RandomOverSampler sampling:  
+    * Accuracy: 0.499  
+    * Mean Squared Error: 1.351  
+* Lemmatizer TFIDF Vector with no sampling:  
+    * Accuracy: 0.410  
+    * Mean Squared Error: 1.351""")
+            st.markdown('HGBC learning rate values between 0.1 and 0.5 and max depths between 50 and 1000 were \
                     tested simultaneously.')
             st.image('../images/hgbr_learn_rate.png', use_column_width=True)
             st.image('../images/hgbr_max_depth.png', use_column_width=True)
@@ -329,59 +216,61 @@ if page == pages[1] :
         sample_display = st.radio('Which model do you want to view?', (
             'Linear Regression',
             'Lasso Regression',
+            'Ridge Regression',
             'ElasticNet Regression',
             'HGBC Regression'))
         if sample_display == 'Linear Regression':
-            st.write('Smote K_Neighbours were tested between 5 and 1000:\n \
-                    * Lemmatizer TFIDF Vector - 500 k_neighbors\n \
-                    ** Accuracy: 0.566\n \
-                    ** Mean Squared Error: 2.96\n \
-                    * Lemmatizer TFIDF Vector - 1000 k_neighbors\n \
-                    ** Accuracy: 0.535\n \
-                    ** Mean Squared Error: 1.98')
-            st.write('Though 500 k_neighbors has the best accuracy, 1000 was take forward as the \
-                     Mean Squared Error and R Squared values (not shown) were better.')
+            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
+* Lemmatizer TFIDF Vector - 500 k_neighbors  
+    * Accuracy: 0.566  
+    * Mean Squared Error: 2.96  
+* Lemmatizer TFIDF Vector - 1000 k_neighbors  
+    * Accuracy: 0.535  
+    * Mean Squared Error: 1.98""")
+            st.markdown('Though 500 k_neighbors has the best accuracy, 1000 k_neighbors were taken forward as the \
+                     Mean Squared Error and R Squared values (R Squared not shown) performed marginally better.')
             st.image('../images/lr_smote_k_neighbors.png', use_column_width=True)
         elif sample_display == 'Lasso Regression':
-            st.write('Smote K_Neighbours were tested between 5 and 1000:\n \
-                    * English Stemmer TFIDF Vector - 500 k_neighbors\n \
-                    ** Accuracy: 0.224\n \
-                    ** Mean Squared Error: 1.61\n \
-                    * Lemmatizer Count Vector - 1000 k_neighbors\n \
-                    ** Accuracy: 0.211\n \
-                    ** Mean Squared Error: 1.54')
+            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
+* English Stemmer TFIDF Vector - 500 k_neighbors  
+    * Accuracy: 0.224  
+    * Mean Squared Error: 1.61  
+* Lemmatizer Count Vector - 1000 k_neighbors  
+    * Accuracy: 0.211  
+    * Mean Squared Error: 1.54""")
             st.image('../images/lasso_smote_k_neighbors.png', use_column_width=True)
         elif sample_display == 'Ridge Regression':
-            st.write('Smote K_Neighbours were tested between 5 and 1000:\n \
-                    * Lemmatizer TFIDF Vector - 1000 k_neighbors\n \
-                    ** Accuracy: 0.490\n \
-                    ** Mean Squared Error: 1.081')
+            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
+* Lemmatizer TFIDF Vector - 1000 k_neighbors  
+    * Accuracy: 0.490  
+    * Mean Squared Error: 1.081""")
             st.image('../images/ridge_smote_k_neighbors.png', use_column_width=True)
         elif sample_display == 'ElasticNet Regression':
-            st.write('Smote K_Neighbours were tested between 5 and 1000:\n \
-                    * Lemmatizer Count Vector - 1000 k_neighbors\n \
-                    ** Accuracy: 0.237\n \
-                    ** Mean Squared Error: 1.489')
+            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
+* Lemmatizer Count Vector - 1000 k_neighbors  
+    * Accuracy: 0.237  
+    * Mean Squared Error: 1.489""")
             st.image('../images/enet_smote_k_neighbors.png', use_column_width=True)
         elif sample_display == 'HGBC Regression':
-            st.write('Smote K_Neighbours were tested between 5 and 1000:\n \
-                    * Lemmatizer Count Vector - 50 k_neighbors\n \
-                    ** Accuracy: 0.486\n \
-                    ** Mean Squared Error: 1.188\n \
-                    * Lemmatizer TFIDF Vector - 250 k_neighbors\n \
-                    ** Accuracy: 0.443\n \
-                    ** Mean Squared Error: 1.184\n \
-                    * Lemmatizer TFIDF Vector - 100 k_neighbors\n \
-                    ** Accuracy: 0.0.446\n \
-                    ** Mean Squared Error: 1.176')
+            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
+* Lemmatizer Count Vector - 50 k_neighbors  
+    * Accuracy: 0.486  
+    * Mean Squared Error: 1.188  
+* Lemmatizer TFIDF Vector - 250 k_neighbors  
+    * Accuracy: 0.443  
+    * Mean Squared Error: 1.184  
+* Lemmatizer TFIDF Vector - 100 k_neighbors  
+    * Accuracy: 0.0.446  
+    * Mean Squared Error: 1.176""")
             st.image('../images/hgbr_smote_k_neighbors.png', use_column_width=True)
     elif sampler_display == 'Cluster Centroids':
-        st.write('Although it was suspected that the Cluster Centroids sampler would perform well\n \
-                if the dataset responds well to classification techniques, instead the method have very little \
-                effect on any of the models, only the HGBR model showed any change.')
+        st.markdown('Although it was suspected that the Cluster Centroids sampler would perform well\n \
+                if the dataset responds well to classification techniques, the Cluster Centroids method had no \
+                effect on most of the models, only the HGBR model showed any change, and even that change was insignificant.')
         sample_display = st.radio('Which model do you want to view?', (
             'Linear Regression',
             'Lasso Regression',
+            'Ridge Regression',
             'ElasticNet Regression',
             'HGBC Regression'))
         if sample_display == 'Linear Regression':
@@ -578,83 +467,83 @@ if page == pages[2]:
         return fig
     
     st.title("Modelling")
-    st.write(' In this report several Classification and Regression Models are compared using data \
+    st.markdown('In this report several Classification and Regression Models are compared using data \
             from amazon reviews as detailed in the Data Quality Report.')
-    st.markdown('# Classification Models')
-    st.write('The Models being compared include: \n \
-            * LogisticRegression \n \
-            * Support Vector Machine Classification \n \
-            * K Nearest Neighbors \n \
-            * Decision Tree Classifier \n \
-            * Random Forest Classifier \n \
-            * Naïve Bayes \n \
-            * Histogram Gradient Boosting Classifier')
-    st.markdown('# Regression Models')
-    st.write('The Models being compared include: \n \
-            * Linear Regression \n \
-            * Lasso \n \
-            * Ridge \n \
-            * ElasticNet \n \
-            * Histogram Gradient Boosting Regressor')
-    st.markdown('# Hypothesis')
-    st.write('The ratings target variable consists of integers that follow a linear related scale. \
+    st.markdown('## Classification Models')
+    st.markdown("""The Models being compared include:
+* LogisticRegression
+* Support Vector Machine Classification
+* K Nearest Neighbors
+* Decision Tree Classifier
+* Random Forest Classifier
+* Naïve Bayes
+* Histogram Gradient Boosting Classifier""")
+    st.markdown('## Regression Models')
+    st.markdown("""The Models being compared include:
+* Linear Regression
+* Lasso
+* Ridge
+* ElasticNet 
+* Histogram Gradient Boosting Regressor""")
+    st.markdown('## Hypothesis')
+    st.markdown('The ratings target variable consists of integers that follow a linear related scale. \
             This means that they should be able to return a reliable score as well as a classification \
             model. This project aims to compare the accuracy of this statement using a comprehensive number of \
             preprocessing and modelling techniques.')
-    st.write('Whilst the classification models return exact categories 1-5, the regression models will only \
+    st.markdown('Whilst the classification models return exact categories 1-5, the regression models will only \
             return a continuous series of results. This has its benefits; the spread of the data can be \
             analyzed in greater detail than the classification reports. The visibility of the data can be used \
             to identify edge cases and see how noise in the categories behaves, which is not possible in the \
             classification reports.')
-    st.write('The HistGradientBoostingRegressor (HGBR) and the HistGradientBoostingClassifier (HGBC) were \
+    st.markdown('The HistGradientBoostingRegressor (HGBR) and the HistGradientBoostingClassifier (HGBC) were \
             chosen over the GradientBoostingRegressor (GBR) and the GradientBoostingClassifier (GBC) to reduce \
             runtimes whilst operating on reasonably sized datasets.')
-    st.markdown('# Model Comparisons')
+    st.markdown('## Model Comparisons')
     st.dataframe(concat_two_dfs_vertical())
     st.pyplot(plot_and_show_accuracy_by_model())
-    st.markdown('# Results Analysis')
-    st.write('The results clearly show that Classification techniques are more suited to the text data, however \
+    st.markdown('## Results Analysis')
+    st.markdown("The results clearly show that Classification techniques are more suited to the text data, however \
             none of the results are strong enough to clearly define the models as better than a basic model. The \
             best model produces only 77% accurate results with a large mean squared error of 0.996 on the test data. \
             This means that the average std deviation covers 1 class to either side of the corect class and the \
             confusion Matrices show that this accuracy largely relies on putting a large percentage of the data in \
-            class 5.\n \
-            77% Accuracy is only 8% better than a model that returns class 5 for every prediction and so this model \
-            can not be considered very strong.')
+            class 5.")
+    st.markdown("77% Accuracy is only 8% better than a basic model that returns class 5 for every prediction and so this model \
+            can not be considered very strong.")
     st.image('../images/SVMBestConfMatrix.png', caption='Best Model Accuracy (SVM) Confusion Matrix', use_column_width=True)
-    st.markdown('## Google Word 2 Vector Analysis')
-    st.write('The google Word 2 Vector Vectorizer is a text processor that relates words together to support the \
+    st.markdown('### Google Word 2 Vector Analysis')
+    st.markdown("The google Word 2 Vector Vectorizer is a text processor that assesses word relationships to support the \
             google search engine. Though the model is designed for search engine modelling rather than sentiment \
             analysis, the model was used to preprocess the review text to identify if the connections between words \
-            in the model could provide a better model accuracy. \n \
-            The word 2 vec preprocessor works on complete sentences rather than tokens like the previous preprocessing \
+            in the model could provide a better model accuracy.")
+    st.markdown("The word 2 vec preprocessor works on complete sentences rather than tokens like the previous preprocessing \
             techniques used. Each word in the sentence is converted into a vector of length 300. The vectors for each \
-            word are added together to make one vector with 300 features representing the sentence.\n \
-            The main major advantage of this text process is that 300 features are processed much much faster than \
+            word are added together to make one vector with 300 features representing the sentence.")
+    st.markdown("The main advantage of this text process is that 300 features are processed much much faster than \
             a sparse matrix or dense matrix containing between 10,0000 and 70,000 features, depending on the contributing \
-            processes and the number of records used to train the dataset.\n \
-            Due to time constraints in the project, only two models with low processing times were modelled with the \
-            word to vec text process, and no word stemming was used.')
+            processes and the number of records used to train the dataset.")
+    st.markdown("Due to time constraints in the project, only two models with low processing times were modelled with the \
+            word2vec text process, and no word stemming was used.")
     st.dataframe(Word2Vec_df())
     st.image('../images/lrW2VConfMatrix.png', caption='Logistic Regression Word 2 Vector Confusion Matrix', use_column_width=True)
     st.image('../images/rfW2VConfMatrix.png', caption='Random Forest Word 2 Vector Confusion Matrix', use_column_width=True)
-    st.write('Like the regression modelling, the score has worsened in comparison to the target baseline accuracy of 69%. \
+    st.markdown('Like the regression modelling, the score has worsened in comparison to the target baseline accuracy of 69%. \
             This is most likely due to the mismatch of the search engine preprocessing model and the sentiment analysis \
             modelling that is being performed. It is possible to customize the Word 2 Vec process and this is likely a \
             good starting point for further analysis.')
-    st.markdown('# Continuing the Investigation')
-    st.write('As even the best model is not particularly strong more work must be performed to discover a \
+    st.markdown('## Continuing the Investigation')
+    st.markdown('As even the best model is not particularly strong more work must be performed to discover a \
             suitable model strength and provide accurate review ratings, or accurate sentiment analysis. \
             The next logical steps include improving the preprocessing methods or improving the machine \
             learning models that generated these results.')
-    st.markdown('## Improving Preprocessing')
-    st.write('Sampling had a negative affect on the accuracy results and was left out of the finalized accuracies. \
+    st.markdown('### Improving Preprocessing')
+    st.markdown("Sampling had a negative affect on the accuracy results and as such sampling was omitted from the finalized accuracies. \
             This can only be because important features in the dataset were becoming diffused either by overproduction \
-            of unimportant features, or through removal of important features.\n \
-            This indicates that feature selection could yield better accuracies, by removing the diffusion and \
-            allowing the modelling processes to better analysze the data.')
-    st.markdown('## Improving Modelling')
-    st.write('Another tool which has not yet been applied to the dataset is the SHAP analysis tool. \n \
+            of unimportant features, or through removal of important features.")
+    st.markdown("This indicates that feature selection could yield better accuracies, by removing the diffusion and \
+            allowing the modelling processes to better analysze the data.")
+    st.markdown('### Improving Modelling')
+    st.markdown('Another tool which has not yet been applied to the dataset is the SHAP analysis tool. \n \
             is \
             Alternatively, more advanced modelling could be implemented to find deeper relations between the words as \
             features. More complex models such as Deep Learning models could be implemented for such a purpose.')
@@ -662,59 +551,85 @@ if page == pages[2]:
 if page == pages[3]:
     rf_model, hgbr_model, logistic_model = load_best_models()
     st.title("Applications")
-    st.write('Understanding the sentiment of customers is an incredibly important part of customer relation management. \
+    st.markdown('Understanding the sentiment of customers is an incredibly important part of customer relation management. \
             Even a basic model could significantly help a relations manager to identify and prioritize which customers to \
             respond to. When combined with a tool that identifies key items related to overall marketing plans such a tool \
             could greatly affect the success of the marketing strategy.')
-    st.write('Additional use cases could include a tool which predicts the rating of a review either for the customer or more \
+    st.markdown('Additional use cases could include a tool which predicts the rating of a review either for the customer or more \
             for a company who have unrated reviews, either through lack of rating system or through data quality issues.')
     st.markdown('# Example Model')
     model_type_selection = st.selectbox("Choose a model type:", ["Classification", "Regression"])
     if model_type_selection == "Classification":
-        model_selection = st.selectbox('Use the model below to compare modelling results:', ["Logistic Regression", "HistGradientBoosting Regressor"])
+        model_selection = st.selectbox('Use the model below to compare modelling results:', ["Logistic Regression", "Random Forest"])
         if model_selection == "Logistic Regression":
             user_review = st.text_area("Enter your review here:", "I think this product is great! Well built and sturdy!")
             if st.button("Generate Prediction"):
-                vectorizer = CountVectorizer()
                 lem_review = new_column_lemmatizer(user_review)
-                cv_review = vectorizer.fit_transform(lem_review)
-                review_features = pd.DataFrame(cv_review.toarray(), columns=vectorizer.get_feature_names_out())
-                user_result = logistic_model.predict(review_features)
-                review_confidence = logistic_model.predict_proba(review_features)
+                cv_review = new_tfidf_vectorize_data(lem_review)
+                [user_result] = logistic_model.predict(cv_review)
+                [[class_1_confidence, class_2_confidence, class_3_confidence, class_4_confidence, class_5_confidence]] = logistic_model.predict_proba(cv_review)
                 st.markdown('### Model Prediction')
-                st.write(f'#### Class: {user_result}')
-                st.write(f'#### Confidence: {review_confidence}')
+                st.markdown(f'#### Class: {user_result}')
+                if user_result == 1:
+                    st.markdown(f'#### Confidence: {round(class_1_confidence * 100, 1)}%')
+                if user_result == 2:
+                    st.markdown(f'#### Confidence: {round(class_2_confidence * 100, 1)}%')
+                if user_result == 3:
+                    st.markdown(f'#### Confidence: {round(class_3_confidence * 100, 1)}%')
+                if user_result == 4:
+                    st.markdown(f'#### Confidence: {round(class_4_confidence * 100, 1)}%')
+                if user_result == 5:
+                    st.markdown(f'#### Confidence: {round(class_5_confidence * 100, 1)}%')
         elif model_selection == "Random Forest":
             user_review = st.text_area("Enter your review here:", "I think this product is great! Well built and sturdy!")
             if st.button("Generate Prediction"):
-                vectorizer = CountVectorizer()
                 lem_review = new_column_lemmatizer(user_review)
-                cv_review = vectorizer.fit_transform(lem_review)
-                review_features = pd.DataFrame(cv_review.toarray(), columns=vectorizer.get_feature_names_out())
-                user_result = rf_model.predict(review_features)
-                review_confidence = rf_model.predict_proba(review_features)
+                cv_review = new_count_vectorize_data(lem_review)
+                [user_result] = rf_model.predict(cv_review)
+                [[class_1_confidence, class_2_confidence, class_3_confidence, class_4_confidence, class_5_confidence]] = rf_model.predict_proba(cv_review)
                 st.markdown('### Model Prediction')
-                st.write(f'#### Class: {user_result}')
-                st.write(f'#### Confidence: {review_confidence}')
+                st.markdown(f'#### Class: {user_result}')
+                if user_result == 1:
+                    st.markdown(f'#### Confidence: {round(class_1_confidence * 100, 1)}%')
+                if user_result == 2:
+                    st.markdown(f'#### Confidence: {round(class_2_confidence * 100, 1)}%')
+                if user_result == 3:
+                    st.markdown(f'#### Confidence: {round(class_3_confidence * 100, 1)}%')
+                if user_result == 4:
+                    st.markdown(f'#### Confidence: {round(class_4_confidence * 100, 1)}%')
+                if user_result == 5:
+                    st.markdown(f'#### Confidence: {round(class_5_confidence * 100, 1)}%')
     elif model_type_selection == "Regression":
         model_selection = st.selectbox('Use the model below to compare modelling results:', ["Hist Gradient Boosting Regressor"])
         if model_selection == "Hist Gradient Boosting Regressor":
             user_review = st.text_area("Enter your review here:", "I think this product is great! Well built and sturdy!")
             if st.button("Generate Prediction"):
-                vectorizer = CountVectorizer()
                 lem_review = new_column_lemmatizer(user_review)
-                cv_review = vectorizer.fit_transform(lem_review)
-                review_features = pd.DataFrame(cv_review.toarray(), columns=vectorizer.get_feature_names_out())
-                user_result = hgbr_model.predict(review_features)
+                cv_review = new_tfidf_vectorize_data(lem_review)
+                cv_dense = cv_review.toarray()
+                [user_result] = hgbr_model.predict(cv_dense)
                 st.markdown('### Model Prediction')
-                st.write(f'#### Class: {user_result}')
+                st.markdown(f'#### Class: {round(user_result, 2)}')
 if page == pages[4]: 
     st.title('Conclusion and Next Steps')
-    st.write('Obviously the models in this report leave some accuracy to be desired. At best they match \
+    st.markdown("## Conclusion")
+    st.markdown("Obviously the models in this report leave some accuracy to be desired. At best they match \
             or marginally improve upon the baseline target accuracy of 69%, at worst the models dramatically reduce the \
-            accuracy below that target value.\n \
-            Combining preprocessing techniques and modelling techniques into a Deep Learning model is a sensible next step \
-            to pursue. Additionally, since the input data is heavily imbalanced and th egreatest predictyion \
+            accuracy below that target value.")
+    st.markdown("These models can not be used to predict review ratings with a high degree of confidence. Extreme\
+                values can be predicted with some degree of confidence, but nuance is easily lost in the models. More work is rewuired to create \
+                a model that provides confidence in the results provided.")
+    st.markdown("## Further")
+    st.markdown("Combining preprocessing techniques and modelling techniques into a Deep Learning model is a sensible next step \
+            to pursue. Additionally, since the input data is heavily imbalanced and the greatest prediction \
             improvements were seen by increasing the size of the dataset, it could be wise to expand and diversify the \
-            dataset by sampling from other amazon cataegories to generate more distinction, or by using a big data\
-            methodology to enable the models to be trained on datasets with millions of records.')
+            dataset by sampling from other amazon categories to generate more distinction, or by using a big data\
+            methodology to enable the models to be trained on datasets with millions of records.")
+    st.markdown("""In the machine Learning Methodologies section two areas for improvement were identified:
+* Improving Preprocessing, by implementing feature reduction
+* Improving Modelling, by using more advanced modelling Techniques.""")
+    st.markdown("## Continuing the Investigation")
+    st.markdown("In light of the poor results, some additional work was undertaken as a contribution to the next steps of the project. \
+                These investigations were heavily time constricted, so only the 'low hanging fruit' options were investigated.")
+    st.markdown("### Improving Preprocessing")
+    st.markdown

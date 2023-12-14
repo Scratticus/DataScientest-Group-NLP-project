@@ -91,7 +91,7 @@ def new_column_lemmatizer(text_series):
   
     # Initialize the lemmatizer and stopwords set
     stop_words = set(stopwords.words('english'))
-    with open('../full_vocab_list.csv', 'r') as file:
+    with open('full_vocab_list.csv', 'r') as file:
         csv_list = file.read().strip()
         go_gauge = csv_list.split(',')
 
@@ -203,7 +203,7 @@ def new_count_vectorize_data(X_train_processed, X_test_processed=None, max_featu
     """
     from sklearn.feature_extraction.text import CountVectorizer
 
-    with open('../full_vocab_list.csv', 'r') as file:
+    with open('full_vocab_list.csv', 'r') as file:
         csv_list = file.read().strip()
         full_vocab = csv_list.split(',')
 
@@ -239,7 +239,7 @@ def new_tfidf_vectorize_data(X_train_processed, X_test_processed=None, max_featu
 
     from sklearn.feature_extraction.text import TfidfVectorizer
 
-    with open('../full_vocab_list.csv', 'r') as file:
+    with open('full_vocab_list.csv', 'r') as file:
         csv_list = file.read().strip()
         full_vocab = csv_list.split(',')
 
@@ -268,7 +268,7 @@ if __name__ == "__main__":
     from sklearn.feature_extraction.text import CountVectorizer
     import csv
 
-    with open('../full_vocab_list.csv', 'r') as file:
+    with open('full_vocab_list.csv', 'r') as file:
         csv_list = file.read().strip()
         header_list = csv_list.split(',')
 
