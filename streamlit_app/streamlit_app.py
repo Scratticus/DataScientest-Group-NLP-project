@@ -43,10 +43,10 @@ page = st.sidebar.radio("Go to", pages)
 if page == pages[0]:
     st.title('Project Goals')
     st.markdown('## Abstract')
-    st.markdown('This report compares methods of datamining the text from Customer Reviews and \
-            the Accuracy of Rating predictions from 1 to 5 stars. This report satisfies the \
-            business need to identify the best model to accurately classify Customer reviews \
-            into a rating. The report aims to save future studies time in computation \
+    st.markdown('This report compares methods of datamining the text from Amazon customer reviews against \
+            the accuracy of machine learning model generated rating predictions from 1 to 5 stars. \
+            This report satisfies the business need to identify the best model to accurately classify \
+            customer reviews into a rating. The report aims to save future studies time in computation \
             comparisons by finding the best preprocessing methods and the best models to \
             classify reports by rating.  ')
     st.markdown('The findings of this report could be implemented in several use cases:  ')
@@ -59,16 +59,17 @@ if page == pages[0]:
     * Sort reviews for customer service customer response Management to organize reviews by priority.  
     * Classify reviews for automated CRM Tools enabling automated responses to reviews based on predicted rating.""")
     st.markdown('## Introduction')
-    st.markdown("This report analyses data from Amazon reviews from the Appliances Category, \
-             the data was originally collected in 2014 and most recently updated in 2018. \
-             Though the data has been parsed for NLP usage, extra Data Cleaning and preprocessing \
-             is required to enable the variety of modelling techniques that will be tested in \
-             the main report.  ")
-    st.markdown("The features will be derived from the review text of each review in the data and the \
-             target variable is the rating from 1-5 stars. In this report, the feature text data \
-             will be checked for duplicates and NaN values, and vectorized.  ")
-    st.markdown("Other columns will also be processed to enable further investigations and project \
-             expansions.")
+    st.markdown("This Project takes review text from Amazon reviews and uses various machine learning models to explore how accurately\
+                the rating can be predicted by machine learning models. This serves as an introductory\
+                investigation into neuro linguistic processing (NLP) to create sentiment analyses. \
+                The project looks at the specific strengths of regression models and classification models\
+                against review rating accuracy.")
+    st.markdown("While the project ultimately did not generate a highly precise tool for predicting amazon review\
+                sentiments, a lot of learnings were taken from the various stages of preprocessing and machine learning models utilized.\
+                Furthermore, the project builds a solid foundation for further investigation and suggests content to support a potential roadmap for \
+                further preprocessing techniques and more complex machine learning or deep learning models for\
+                future investigations.")
+    
 
 if page == pages[1] :
     @st.cache_data
@@ -91,15 +92,26 @@ if page == pages[1] :
     @st.cache_data
     def ratings():
         rating_dict = {
-            "overall (Rating column - Target)": [5, 4, 3, 2, 1],
+            "overall": [5, 4, 3, 2, 1],
             "Percentage of Reviews": ['69%', '13%', '5%', '3%', '10%']
         }
         rating_df = pd.DataFrame(rating_dict)
-        rating_df = rating_df.set_index("overall (Rating column - Target)")
+        rating_df = rating_df.set_index("overall")
         return rating_df
 
     st.title("Dataset Quality")
     st.markdown('## Data Source')
+    st.markdown("This report analyses Amazon review data from the Appliances Category, \
+            the data was originally collected in 2014 and most recently updated in 2018. \
+            Though the data has been parsed for NLP usage, extra Data Cleaning and preprocessing \
+            is required to enable the variety of modelling techniques that will be tested in \
+            this report.  ")
+    st.markdown("The feature variables will be derived from the review text of each review and the \
+            target variable will be the rating from 1-5 stars. The data quality is verifired by\
+            checking for duplicates and NaN values, various tokenization and vectorization techniques\
+            are implemented to enable the machine learning models to accurately parse the data.  ")
+    st.markdown("Other columns can also be processed to enable further investigations and project \
+             expansions. Though these extra deliverables will depend on favourable project scope and timeline.")
     st.markdown("#### Source Citation:")
     st.markdown("""> **Justifying recommendations using distantly-labeled reviews and fined-grained aspects**  
 > Jianmo Ni, Jiacheng Li, Julian McAuley  
@@ -107,43 +119,47 @@ if page == pages[1] :
     st.markdown('From this data, only the appliance reviews were utilized for this project. These were \
              selected as the number of records is between 500k and 1m records. This criterion was \
              estimated to ensure that enough data is present to produce a well-fitting model, but \
-             not so many that computational times will exceed 24 hours.')
+             not so many records that computational times will regularly exceed 24 hours.')
     st.markdown('## Data Overview')
     st.dataframe(load_synopsis())
     st.markdown('### Target Data Balance')
-    st.dataframe(ratings())
-    st.markdown('The target column ‘overall’ is imbalanced, as shown by the graph above. This indicates \
-             that the data will need to be sampled to increase classification accuracy. 69% of the \
-             reviews awarded a rating of 5, which indicates that a very basic model that simply calls \
-             every review 5 stars will be 69% accurate against this data.')
-    st.markdown(f"""> ##### Our baseline Accuracy is 69%
-> assuming all reviews are assigned rating 5.""")
     st.image('../images/ReportImages/OverallRatingDistribution.jpg', caption='Rating Distribution', use_column_width=True)
+    st.dataframe(ratings())
+    st.markdown('The target column ‘overall’ (Ratings) is imbalanced, as shown by the graph above. This indicates \
+             that the data will need to be sampled to increase classification accuracy. 69% of the \
+             reviews awarded a rating of 5, which indicates that a very basic model that simply assigns \
+             every review 5 stars will be 69% accurate against this data.')
+    st.markdown(f"""> ##### The baseline Accuracy is 69%
+> assuming all reviews are assigned rating 5.""")
     st.markdown('### Dataset Preprocessing')
     st.markdown("To achieve the best possible results from the dataset it is essential to reduce and format\
-            the dataset into a data type and format that enables the models to genersate the best possible\
-            accuracies.  ")
-    st.markdown("The reviews include html tags for videos and images if any were included in the review \
+            the dataset into a compressed data type and format that enables the models to genersate the best possible\
+            accuracies. This process must include removing eronious submissions, grouping words by relationship\
+            and converting the text data to a numerical representation. ")
+    st.markdown("The reviews include html tags for videos and images which were included in the review. \
             This text must be removed, as must any text including numbers, misspellings must be converted \
             to the correct spelling and tokenised. To achieve these results, Regex, pyspellchecker and the \
-            RegExTokenizer were used to pre process the text in each review In addition to this the reviews\
-            were compared to nltk's English stopwords and stopwords were removed.")
-    st.markdown('Several further methods were implemented to ready the dataset for modelling. These included \
-            WordNetLemmatizer and the ENglishStemmer from the nltk.stem library. These models reduce the words to \
-            roots of the word in different formats. To enable machine learning on these stemming methods, \
-            the datasets need to be converted to number vectors and a further two models in the CountVectorizer \
+            RegExTokenizer were used to pre process the text in each review. In addition to this the reviews\
+            were compared to nltk's English stopwords and common stopwords were removed.")
+    st.markdown('Multiple further methods were implemented to ready the dataset for modelling. These included the\
+            WordNetLemmatizer and the EnglishStemmer from the nltk.stem library. These models reduce each word to its\
+            root in different formats. To enable machine learning on these stemming methods, \
+            the text data must be converted to number vectors. This conversion was introduced by the CountVectorizer \
             and TFIDF Vectorizer from sci-kit Learns text library.')
     st.markdown("The data was also vectorized using Google's Word2Vec model, which did not use the stemmers to produce \
             vectors.")
     st.markdown("## A Note on Sampling")
-    st.markdown("It is obvious that the dataset is imbalanced, analysis was also performed on 4 samplers to see \
-            which would be the most beneficial to the models, however the model quality was too poor for the \
-            sampling results to be valid and so sampling was not well rated. Instead models are attuned on raw \
-            unless an improvement is seen through smapling and oversampling techniques are largely dropped due \
-            to data/working memory limitations.")
+    st.markdown("The dataset is heavily imbalanced, analysis was performed on four samplers to see \
+            which would be the most beneficial to the machine learning models, however the resulting model quality was poor. \
+            The sampling results produced scores below the benchmark accuracy and models which had performed above \
+            this threshold before sampling performed far worse  after sampling. As such, sampling was not well rated. \
+            Instead models are attuned on raw unless a distinct improvement was seen through sampling. Even though oversampling \
+            techniques returned marginally better accuracies than no sampling in some cases, these oversampling techniques were \
+            largely dropped due to data/working memory limitations.")
     st.markdown('Although the samplers proved to be unuseful, each one had a gridsearch performed to identify the maximum \
             potential sample with the given parameters.')
-    
+    st.markdown("The performance of the Samplers also provides insights into the importance of the features being modelled and the \
+                surprising lack of improvement through sampling is noted in the project conclusion.")
     options = {
         'RandomOverSampler, RandomUndersampler, no sampling',
         'Synthetic Minority Over Sampling Technique',
@@ -156,9 +172,9 @@ if page == pages[1] :
         'Cluster Centroids'
     ))
     if sampler_display == 'RandomOverSampler, RandomUndersampler, no sampling':
-        st.markdown('For the simpler models a simple best accuracy with the selected Sampler was taken. \
+        st.markdown('For the simpler sampling methods an accuracy score with the selected Sampler was taken. \
                 For models with several arguments to be tested, these were tested simultaneously with \
-                the sampler gridsearch to save computation in later more complex tests. These parameters \
+                the sampler gridsearch to save computational steps in later more complex modelling. These parameters \
                 were graphed when available.')
         sample_display = st.radio('Which model do you want to view?', (
             'Linear Regression',
@@ -185,7 +201,7 @@ if page == pages[1] :
     * Accuracy: 0.478
     * Mean Squared Error: 1.11""")
             st.markdown('Ridge alpha values between 0.001 and 0.3 were tested simultaneously. Though \
-                    0.001 has the best accuracy, 0.3 was take forward as the Mean Squared Error nearly tripled \
+                    0.001 had the best accuracy, 0.3 was taken forward as the Mean Squared Error nearly tripled \
                     at lower alphas.')
             st.image('../images/ridge_alphas.png', use_column_width=True)
         elif sample_display == 'ElasticNet Regression':
@@ -227,7 +243,7 @@ if page == pages[1] :
 * Lemmatizer TFIDF Vector - 1000 k_neighbors  
     * Accuracy: 0.535  
     * Mean Squared Error: 1.98""")
-            st.markdown('Though 500 k_neighbors has the best accuracy, 1000 k_neighbors were taken forward as the \
+            st.markdown('Though 500 k_neighbors had the best accuracy, 1000 k_neighbors were taken forward as the \
                      Mean Squared Error and R Squared values (R Squared not shown) performed marginally better.')
             st.image('../images/lr_smote_k_neighbors.png', use_column_width=True)
         elif sample_display == 'Lasso Regression':
@@ -264,9 +280,9 @@ if page == pages[1] :
     * Mean Squared Error: 1.176""")
             st.image('../images/hgbr_smote_k_neighbors.png', use_column_width=True)
     elif sampler_display == 'Cluster Centroids':
-        st.markdown('Although it was suspected that the Cluster Centroids sampler would perform well\n \
-                if the dataset responds well to classification techniques, the Cluster Centroids method had no \
-                effect on most of the models, only the HGBR model showed any change, and even that change was insignificant.')
+        st.markdown('It was hypothesized that good performance on the Cluster Centroids sampler could indicate that  \
+                the dataset may respond well to classification techniques, however the Cluster Centroids method had no \
+                effect on most of the models, only the HGBR model showed any change, but the change was insignificant.')
         sample_display = st.radio('Which model do you want to view?', (
             'Linear Regression',
             'Lasso Regression',
@@ -468,7 +484,9 @@ if page == pages[2]:
     
     st.title("Modelling")
     st.markdown('In this report several Classification and Regression Models are compared using data \
-            from amazon reviews as detailed in the Data Quality Report.')
+            from amazon reviews as detailed in the Data Quality Report. The models are detailed in the following sections. \
+            the goal of the modelling is to accurately analyse the sentiment of the text review and predict the rating that the \
+            user submitted alongside their review.')
     st.markdown('## Classification Models')
     st.markdown("""The Models being compared include:
 * LogisticRegression
@@ -487,10 +505,23 @@ if page == pages[2]:
 * Histogram Gradient Boosting Regressor""")
     st.markdown('## Hypothesis')
     st.markdown('The ratings target variable consists of integers that follow a linear related scale. \
-            This means that they should be able to return a reliable score as well as a classification \
-            model. This project aims to compare the accuracy of this statement using a comprehensive number of \
-            preprocessing and modelling techniques.')
-    st.markdown('Whilst the classification models return exact categories 1-5, the regression models will only \
+            Theoretically these reatings should be able to return a reliable score in regression models as well \
+            as classification models. This project aims to compare the accuracy of this statement using a \
+            comprehensive number of preprocessing and machine learning modelling techniques.')
+    st.markdown("The project will compare the best accuracies of the machine learning models detailed above using multiple \
+                preprocessing methods. The expected result is a similarity between the accuracy and error between the \
+                classification models and the regression models.")
+    st.markdown("""To measure this variance between models, the following scores will be taken from the model predictions:
+* Accuracy: The number of correct predictions as a percentage.
+* Precision: The number of correct positive predictions as a percentage.*
+* Recall: The number of correct positives as a percentage with respect to false negative predictions.*
+* F1 Score: A metric that combines Precision and Recall to provide a balanced measure*
+* R Squared: The Good ness of fit indicator where values between 0.75 and 1 indicate a strong regression.**
+* Mean Squared Error: Error indicator which penalises large errors.""")
+    st.markdown("*Precision, Recall and F1 Score are all calculated using a weighted average, the support for each class impacts the score.")
+    st.markdown("**When R Squared returns a negative value, this indicates an incredibly poor regression, this is a known bug of the scorer.")
+    st.markdown("## Considerations")
+    st.markdown('The classification models return exact categories 1-5, the regression models will only \
             return a continuous series of results. This has its benefits; the spread of the data can be \
             analyzed in greater detail than the classification reports. The visibility of the data can be used \
             to identify edge cases and see how noise in the categories behaves, which is not possible in the \
@@ -502,11 +533,11 @@ if page == pages[2]:
     st.dataframe(concat_two_dfs_vertical())
     st.pyplot(plot_and_show_accuracy_by_model())
     st.markdown('## Results Analysis')
-    st.markdown("The results clearly show that Classification techniques are more suited to the text data, however \
+    st.markdown("The results show that Classification techniques are more suited to the text data, however \
             none of the results are strong enough to clearly define the models as better than a basic model. The \
             best model produces only 77% accurate results with a large mean squared error of 0.996 on the test data. \
-            This means that the average std deviation covers 1 class to either side of the corect class and the \
-            confusion Matrices show that this accuracy largely relies on putting a large percentage of the data in \
+            The average std deviation covers 1 class to either side of the correct class and the \
+            confusion Matrices show that this accuracy largely relies on assigning a large percentage of the data to \
             class 5.")
     st.markdown("77% Accuracy is only 8% better than a basic model that returns class 5 for every prediction and so this model \
             can not be considered very strong.")
@@ -527,12 +558,12 @@ if page == pages[2]:
     st.dataframe(Word2Vec_df())
     st.image('../images/lrW2VConfMatrix.png', caption='Logistic Regression Word 2 Vector Confusion Matrix', use_column_width=True)
     st.image('../images/rfW2VConfMatrix.png', caption='Random Forest Word 2 Vector Confusion Matrix', use_column_width=True)
-    st.markdown('Like the regression modelling, the score has worsened in comparison to the target baseline accuracy of 69%. \
-            This is most likely due to the mismatch of the search engine preprocessing model and the sentiment analysis \
-            modelling that is being performed. It is possible to customize the Word 2 Vec process and this is likely a \
-            good starting point for further analysis.')
+    st.markdown('LThe score has worsened in comparison to the target baseline accuracy of 69%. \
+            This is most likely due to the mismatch of the search engine preprocessing application and the sentiment analysis \
+            application that is being performed. It is possible to customize the Word 2 Vec process for individual use cases. \
+            This is a good starting point for further analysis.')
     st.markdown('## Continuing the Investigation')
-    st.markdown('As even the best model is not particularly strong more work must be performed to discover a \
+    st.markdown('Even the best model is not particularly strong, hence more work must be performed to discover a \
             suitable model strength and provide accurate review ratings, or accurate sentiment analysis. \
             The next logical steps include improving the preprocessing methods or improving the machine \
             learning models that generated these results.')
@@ -543,8 +574,7 @@ if page == pages[2]:
     st.markdown("This indicates that feature selection could yield better accuracies, by removing the diffusion and \
             allowing the modelling processes to better analysze the data.")
     st.markdown('### Improving Modelling')
-    st.markdown('Another tool which has not yet been applied to the dataset is the SHAP analysis tool. \n \
-            is \
+    st.markdown('Another tool which has not yet been applied to the dataset is the SHAP analysis tool. \
             Alternatively, more advanced modelling could be implemented to find deeper relations between the words as \
             features. More complex models such as Deep Learning models could be implemented for such a purpose.')
 
@@ -557,6 +587,8 @@ if page == pages[3]:
             could greatly affect the success of the marketing strategy.')
     st.markdown('Additional use cases could include a tool which predicts the rating of a review either for the customer or more \
             for a company who have unrated reviews, either through lack of rating system or through data quality issues.')
+    st.markdown("In industries where review bombing is common, this tool could also be used as part of an anomolie detection. \
+                By focussing on the precise reviews, the review bombs can largely be ignored or classified.")
     st.markdown('# Example Model')
     model_type_selection = st.selectbox("Choose a model type:", ["Classification", "Regression"])
     if model_type_selection == "Classification":
@@ -613,45 +645,53 @@ if page == pages[3]:
 if page == pages[4]: 
     st.title('Conclusion and Next Steps')
     st.markdown("## Conclusion")
-    st.markdown("Obviously the models in this report leave some accuracy to be desired. At best they match \
+    st.markdown("The machine learning models generated in this report leave some accuracy to be desired. At best they match \
             or marginally improve upon the baseline target accuracy of 69%, at worst the models dramatically reduce the \
             accuracy below that target value.")
     st.markdown("These models can not be used to predict review ratings with a high degree of confidence. Extreme\
-                values can be predicted with some degree of confidence, but nuance is easily lost in the models. More work is rewuired to create \
-                a model that provides confidence in the results provided.")
+                values can be predicted with some degree of confidence, but nuance is easily lost in the models. Further \
+                imrpovements are required to create a suitable model that provides confidence in the results provided.")
     st.markdown("## Further")
     st.markdown("Combining preprocessing techniques and modelling techniques into a Deep Learning model is a sensible next step \
             to pursue. Additionally, since the input data is heavily imbalanced and the greatest prediction \
             improvements were seen by increasing the size of the dataset, it could be wise to expand and diversify the \
             dataset by sampling from other amazon categories to generate more distinction, or by using a big data\
             methodology to enable the models to be trained on datasets with millions of records.")
-    st.markdown("""In the machine Learning Methodologies section two areas for improvement were identified:
+    st.markdown("""In the machine learning methodologies section two areas for improvement were identified:
 * Improving Preprocessing, by implementing feature reduction
 * Improving Modelling, by using more advanced modelling Techniques.""")
     st.markdown("## Continuing the Investigation")
     st.markdown("In light of the poor results, some additional work was undertaken as a contribution to the next steps of the project. \
                 These investigations were heavily time constricted, so only the 'low hanging fruit' options were investigated.")
     st.markdown("### Improving Preprocessing")
-    st.markdown("The greatest potential improvement in preprocessing lies in the perceived removal of diffusion. Since sampling worsened the\
-                scores across the board, it can be assumed that the data contains a lot of unimportant features which are being falsely replicated, few important features\
+    st.markdown("The greatest potential improvement in preprocessing lies in the perceived removal of diffusion. Sampling worsened the\
+                scores across the board, and so it can be assumed that either the data contains a lot of unimportant features which are being falsely replicated, few important features\
                 which are not being fairly replicated due to the accompanying noise, or a combination of the two. As such a feature extraction process should help the models\
                 to extract the relationships between the most important features.")
-    st.markdown("Ideally, an Recursive Feature Elimnation (RFE) with Cross Validation (RFECV) could be run on the vocabulary to identified the words that have the greatest validated\
-                on the results. However the RFECV takes a long time to run, each step trains the chosen estimator against the split dataset, tests the\
+    st.markdown("Ideally, a Recursive Feature Elimnation (RFE) with Cross Validation (RFECV) could be run on the vocabulary to identified the words that have the greatest validated\
+                on the results. However, the RFECV takes a long time to run, each step trains the chosen estimator against the split dataset, tests the\
                 results against the remainder of the dataset and all steps are repeated by the number of cross validations. On top of this there \
                 is some computational conglomeration time to consider. For a detailed study this will take an extremely long time, more time than is realistically available in the tenure of this project.")
-    st.markdown("Instead a simple RFE was run on the entire dataset by quarters. The chosen estimator was the Random Forest Estimator which had the best Test Accuracy scores.\
-                a step of 1000 was implemented with a desired number of features set to 3000.")
-    st.markdown("The 4 quarters produced a list of most important words which were merged to created 1 list of 3922 features length. A reduction from 28,822 features to 3,922.")
+    st.markdown("Instead a simple RFE was run on the entire dataset by quarters. The chosen estimator was the Random Forest Estimator which had the best test accuracy scores.\
+                A step of 1000 was implemented with a desired number of features set to 3000.")
+    st.markdown("The 4 quarters produced a list of most important words which were merged to create a list of 3922 unique features. A reduction from 28,822 features to 3,922.")
     st.markdown("The extracted features were parsed through the custom lemmatizer function, instead of using English stop words as a no-go gauge, the function was inverted and the \
                 important feature list was implemented as a go through gauge. In this way the model only considered words that were deemed important by the RFE process.")
-    st.markdown("The Reduced feature Random Forest Accuracy and Mean Squared Error did not improve. The Accuracy reduced to 67.8% and the Mean Squared Error increased to 2.30. \
+    st.markdown("The reduced feature Random Forest accuracy and mean squared error scores did not improve. The accuracy score reduced to 67.8% and the mean squared error score increased to 2.30. \
                 This indicates that this feature selection has hurt the modelling process more than it has improved it as the accuracy has now fallen below the baseline accuracy.")
+    st.markdown("It is plausible that the RFE was applied overzealously, possibly reducing the feature variables too harshly, so that many records had little to no data\
+                to build a prediction from.")
+    st.markdown("Another potential avenue is the revisiting and customizing of the google word2vec vectorizer. This vectorizer measures whole sentences\
+                and provides a relational summary of the sentence. Customizing the vectorizer to this sentiment analysis use case\
+                could yield a substantial score improvement. Theoretically the model should be able to detect a lot of connections between the \
+                words featured in the review that other modelling techniques may miss. For example 'not bad' is a positive or at least average \
+                but the individual words could both potentially score a review negatively. The word 2 vec vectorizer should see past the unique words and\
+                consider the relationship between them. This may also alleviate the lack of nuance in our models.")
     st.markdown("##### Alternate Preprocessing steps")
     st.markdown("During the investigation, the quality of the dataset was brought into question. Another avenue of exploration would be to expand the dataset fed to the models.\
                 The ideal Dataset would consist of an amalgamation of categories from the amazon directory, using a sampling method which harvests a good distribution of target variables.\
                 Ideally the data would be amalgamated into one dataset which is reasonably well balanced and of considereable size. Two million records would be a conservative estimate.\
-                With this many records and more balance than present in the current module, all function processes should be easier. From preprocessing, to modelling, including the \
+                With this many records and more balance than present in the current dataset all function results should be improved, from preprocessing to modelling, including the \
                 feature extraction attempted in this further work. Working with this much data will require mass data handling and a pySpark or similar solution would need to be implemented \
                 to make analyses possible.")
     st.markdown("### Improving Modelling")

@@ -155,7 +155,7 @@ def new_column_stemmatizer(text_series):
   
     # Initialize the stemmatizer and stopwords set
     stop_words = set(stopwords.words('english'))
-    with open('../full_vocab_list_stemmed.csv', 'r') as file:
+    with open('full_vocab_list_stemmed.csv', 'r') as file:
         csv_list = file.read().strip()
         go_gauge = csv_list.split(',')
 
