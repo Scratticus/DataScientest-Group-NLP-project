@@ -113,53 +113,106 @@ if page == pages[1] :
     st.markdown("Other columns can also be processed to enable further investigations and project \
              expansions. Though these extra deliverables will depend on favourable project scope and timeline.")
     st.markdown("#### Source Citation:")
+    st.write('The original dataset analysed in our project is taken from the research paper')
     st.markdown("""> **Justifying recommendations using distantly-labeled reviews and fined-grained aspects**  
 > Jianmo Ni, Jiacheng Li, Julian McAuley  
 > _Empirical Methods in Natural Language Processing (EMNLP), 2019_""")
-    st.markdown('From this data, only the appliance reviews were utilized for this project. These were \
-             selected as the number of records is between 500k and 1m records. This criterion was \
-             estimated to ensure that enough data is present to produce a well-fitting model, but \
-             not so many records that computational times will regularly exceed 24 hours.')
+    st.write('\n For more details on the source of our data, you can access the full research paper under following address: *https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/*')
+    st.write('From the extensive dataset provided in the previously cited paper, only the category **Appliances** was selected for \
+             further analysis. This was based on the size of the given subcategory, ranging from 500,000 to 1 million records, \
+             as it provides a careful balance between data volume and computational efficiency. The aim was to ensure the availability \
+             of a sufficiently robust dataset for effective training and validation of machine learning models, while avoiding the \
+             potential for long running times in excess of 24 hours.')
     st.markdown('## Data Overview')
+    st.write('This dataset contains a collection of products and associated ratings and additional information within \
+             the selected **Appliances** category. This initial view of the provided **.json** dataset with the **.head()** function provides an \
+             initial understanding of the structure and content of the dataset.')
+    st.write(df.head())
+    st.write('The information provided in each column of the dataset is explained in the following table, containing also number of Null Records.')
     st.dataframe(load_synopsis())
+    st.markdown('### Missing values')
+    st.image('../images/MissingValuesHeatmap01.png')
+
     st.markdown('### Target Data Balance')
-    st.image('../images/ReportImages/OverallRatingDistribution.jpg', caption='Rating Distribution', use_column_width=True)
-    st.dataframe(ratings())
-    st.markdown('The target column ‘overall’ (Ratings) is imbalanced, as shown by the graph above. This indicates \
+    # Create two columns for layout
+    col1, col2 = st.columns(2)
+    with col1:
+        st.dataframe(ratings())
+    with col2:
+        st.image('../images/OverallRatingBalance.png')
+    st.markdown('The target column ‘overall’ is imbalanced, as shown by the graph above. This indicates \
              that the data will need to be sampled to increase classification accuracy. 69% of the \
-             reviews awarded a rating of 5, which indicates that a very basic model that simply assigns \
+             reviews awarded a rating of 5, which indicates that a very basic model that simply calls \
              every review 5 stars will be 69% accurate against this data.')
-    st.markdown(f"""> ##### The baseline Accuracy is 69%
+    st.markdown(f"""> ##### Our baseline Accuracy is 69%
 > assuming all reviews are assigned rating 5.""")
+    # st.image('../images/ReportImages/OverallRatingDistribution.jpg', caption='Rating Distribution', use_column_width=True)
     st.markdown('### Dataset Preprocessing')
+    st.markdown('For further preprocessing, only the selected **Targer** and **Features** columns will be used.')
+    st.markdown('###### Selected Target and Features')
+    st.write(df[['overall', 'reviewText']].head())
     st.markdown("To achieve the best possible results from the dataset it is essential to reduce and format\
-            the dataset into a compressed data type and format that enables the models to genersate the best possible\
-            accuracies. This process must include removing eronious submissions, grouping words by relationship\
-            and converting the text data to a numerical representation. ")
-    st.markdown("The reviews include html tags for videos and images which were included in the review. \
+            the dataset into a data type and format that enables the models to generate the best possible\
+            accuracies.  ")
+    st.markdown("The reviews include html tags for videos and images if any were included in the review. \
             This text must be removed, as must any text including numbers, misspellings must be converted \
             to the correct spelling and tokenised. To achieve these results, Regex, pyspellchecker and the \
-            RegExTokenizer were used to pre process the text in each review. In addition to this the reviews\
-            were compared to nltk's English stopwords and common stopwords were removed.")
-    st.markdown('Multiple further methods were implemented to ready the dataset for modelling. These included the\
-            WordNetLemmatizer and the EnglishStemmer from the nltk.stem library. These models reduce each word to its\
-            root in different formats. To enable machine learning on these stemming methods, \
-            the text data must be converted to number vectors. This conversion was introduced by the CountVectorizer \
+            RegExTokenizer were used to pre process the text in each review In addition to this the reviews\
+            were compared to nltk's English stopwords and stopwords were removed.")
+    code_snippet = """
+    # Function to clean the review text
+    def clean_text(text):
+        # Convert non-string to empty string
+        if not isinstance(text, str):
+            return ''
+    
+        # Remove hyperlinks
+        text = re.sub(r'http\S+', '', text)
+        # Remove HTML tags
+        text = re.sub(r'<[^>]+>', '', text)
+        # Remove newlines, carriage returns, and tabs
+        text = re.sub(r'[\n\r\t]', ' ', text)
+        # Remove numbers
+        text = re.sub(r'\d+', '', text)
+        # Remove special characters and punctuations
+        text = re.sub(r'[^a-zA-Z\s]', '', text)
+        # Replace multiple spaces with a single space
+        text = re.sub(r'\s+', ' ', text)
+        # Correct spelling
+        # text = correct_spelling(text)
+        return text.strip()
+    
+    df['reviewText'] = df['reviewText'].apply(clean_text)
+    """
+    st.code(code_snippet, language='python')
+    st.markdown('Several further methods were implemented to ready the dataset for modelling. These included \
+            WordNetLemmatizer and the ENglishStemmer from the nltk.stem library. These models reduce the words to \
+            roots of the word in different formats. To enable machine learning on these stemming methods, \
+            the datasets need to be converted to number vectors and a further two models in the CountVectorizer \
             and TFIDF Vectorizer from sci-kit Learns text library.')
+    st.markdown('##### Vectorized data')
+    st.markdown('An example of vectorized data using **CountVectorizer**(max_features=100).')
+    CVsparse = new_count_vectorize_data(df['reviewText'], max_features=100)
+    CVdense = CVsparse.toarray()
+    with open('full_vocab_list.csv', 'r') as file:
+        csv_list = file.read().strip()
+        header_list = csv_list.split(',')
+    dfCV = pd.DataFrame(CVdense, columns=header_list)
+    df.rename(columns={'overall': 'OverallRating'}, inplace=True)
+    df_new = pd.concat([df['OverallRating'], dfCV], axis=1)
+    df_new.to_csv('./ReducedExampleRatings.csv')
+    st.write(df_new.head())
     st.markdown("The data was also vectorized using Google's Word2Vec model, which did not use the stemmers to produce \
             vectors.")
     st.markdown("## A Note on Sampling")
-    st.markdown("The dataset is heavily imbalanced, analysis was performed on four samplers to see \
-            which would be the most beneficial to the machine learning models, however the resulting model quality was poor. \
-            The sampling results produced scores below the benchmark accuracy and models which had performed above \
-            this threshold before sampling performed far worse  after sampling. As such, sampling was not well rated. \
-            Instead models are attuned on raw unless a distinct improvement was seen through sampling. Even though oversampling \
-            techniques returned marginally better accuracies than no sampling in some cases, these oversampling techniques were \
-            largely dropped due to data/working memory limitations.")
+    st.markdown("It is obvious that the dataset is imbalanced, analysis was also performed on 4 samplers to see \
+            which would be the most beneficial to the models, however the model quality was too poor for the \
+            sampling results to be valid and so sampling was not well rated. Instead models are attuned on raw \
+            unless an improvement is seen through smapling and oversampling techniques are largely dropped due \
+            to data/working memory limitations.")
     st.markdown('Although the samplers proved to be unuseful, each one had a gridsearch performed to identify the maximum \
             potential sample with the given parameters.')
-    st.markdown("The performance of the Samplers also provides insights into the importance of the features being modelled and the \
-                surprising lack of improvement through sampling is noted in the project conclusion.")
+    
     options = {
         'RandomOverSampler, RandomUndersampler, no sampling',
         'Synthetic Minority Over Sampling Technique',
@@ -172,9 +225,9 @@ if page == pages[1] :
         'Cluster Centroids'
     ))
     if sampler_display == 'RandomOverSampler, RandomUndersampler, no sampling':
-        st.markdown('For the simpler sampling methods an accuracy score with the selected Sampler was taken. \
+        st.markdown('For the simpler models a simple best accuracy with the selected Sampler was taken. \
                 For models with several arguments to be tested, these were tested simultaneously with \
-                the sampler gridsearch to save computational steps in later more complex modelling. These parameters \
+                the sampler gridsearch to save computation in later more complex tests. These parameters \
                 were graphed when available.')
         sample_display = st.radio('Which model do you want to view?', (
             'Linear Regression',
@@ -201,7 +254,7 @@ if page == pages[1] :
     * Accuracy: 0.478
     * Mean Squared Error: 1.11""")
             st.markdown('Ridge alpha values between 0.001 and 0.3 were tested simultaneously. Though \
-                    0.001 had the best accuracy, 0.3 was taken forward as the Mean Squared Error nearly tripled \
+                    0.001 has the best accuracy, 0.3 was take forward as the Mean Squared Error nearly tripled \
                     at lower alphas.')
             st.image('../images/ridge_alphas.png', use_column_width=True)
         elif sample_display == 'ElasticNet Regression':
@@ -243,7 +296,7 @@ if page == pages[1] :
 * Lemmatizer TFIDF Vector - 1000 k_neighbors  
     * Accuracy: 0.535  
     * Mean Squared Error: 1.98""")
-            st.markdown('Though 500 k_neighbors had the best accuracy, 1000 k_neighbors were taken forward as the \
+            st.markdown('Though 500 k_neighbors has the best accuracy, 1000 k_neighbors were taken forward as the \
                      Mean Squared Error and R Squared values (R Squared not shown) performed marginally better.')
             st.image('../images/lr_smote_k_neighbors.png', use_column_width=True)
         elif sample_display == 'Lasso Regression':
@@ -280,9 +333,9 @@ if page == pages[1] :
     * Mean Squared Error: 1.176""")
             st.image('../images/hgbr_smote_k_neighbors.png', use_column_width=True)
     elif sampler_display == 'Cluster Centroids':
-        st.markdown('It was hypothesized that good performance on the Cluster Centroids sampler could indicate that  \
-                the dataset may respond well to classification techniques, however the Cluster Centroids method had no \
-                effect on most of the models, only the HGBR model showed any change, but the change was insignificant.')
+        st.markdown('Although it was suspected that the Cluster Centroids sampler would perform well\n \
+                if the dataset responds well to classification techniques, the Cluster Centroids method had no \
+                effect on most of the models, only the HGBR model showed any change, and even that change was insignificant.')
         sample_display = st.radio('Which model do you want to view?', (
             'Linear Regression',
             'Lasso Regression',
@@ -558,7 +611,7 @@ if page == pages[2]:
     st.dataframe(Word2Vec_df())
     st.image('../images/lrW2VConfMatrix.png', caption='Logistic Regression Word 2 Vector Confusion Matrix', use_column_width=True)
     st.image('../images/rfW2VConfMatrix.png', caption='Random Forest Word 2 Vector Confusion Matrix', use_column_width=True)
-    st.markdown('LThe score has worsened in comparison to the target baseline accuracy of 69%. \
+    st.markdown('The score has worsened in comparison to the target baseline accuracy of 69%. \
             This is most likely due to the mismatch of the search engine preprocessing application and the sentiment analysis \
             application that is being performed. It is possible to customize the Word 2 Vec process for individual use cases. \
             This is a good starting point for further analysis.')
@@ -574,9 +627,29 @@ if page == pages[2]:
     st.markdown("This indicates that feature selection could yield better accuracies, by removing the diffusion and \
             allowing the modelling processes to better analysze the data.")
     st.markdown('### Improving Modelling')
-    st.markdown('Another tool which has not yet been applied to the dataset is the SHAP analysis tool. \
-            Alternatively, more advanced modelling could be implemented to find deeper relations between the words as \
-            features. More complex models such as Deep Learning models could be implemented for such a purpose.')
+    st.markdown('Another analysis tool that has not yet been applied to the dataset is the **SHAP** (SHapley Additive exPlanations). \
+                SHAP analysis is a powerful machine learning technique that explains the influence of individual features on the predictions \
+                of a model. It can provide deeper insights into the relationships between words and their impact on the results. The following \
+                figures show examples of SHAP analysis based on a part of our dataset, which is only 5%, using the CountVectoriser with a \
+                maximum of 100 features. The calculation of this limited part took about 1832 minutes.')
+    st.markdown('More complex models such as Deep Learning models could be implemented for such a purpose.')
+    st.markdown('##### Overall SHAP analysis for all 5 classes')
+    st.image('../images/ShapOverall.png')
+    st.markdown('\n')
+    st.markdown('Next images.')
+    # Create columns for layout
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.image('../images/Shap01.png')
+    with col2:
+        st.image('../images/Shap02.png')
+    with col3:
+        st.image('../images/Shap03.png')
+    with col4:
+        st.image('../images/Shap04.png')
+    with col5:
+        st.image('../images/Shap05.png')
+
 
 if page == pages[3]:
     rf_model, hgbr_model, logistic_model = load_best_models()
