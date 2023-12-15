@@ -5,18 +5,20 @@ def text_stemmer(tokens, stemmer, go_gauge):
         lemmatizer = WordNetLemmatizer()
         stem_string = ''
         for token in tokens:
-            if token and token in go_gauge:
+            if token:
                 stemmed_word = lemmatizer.lemmatize(token)
-                stem_string += stemmed_word + ' '    
+                if stemmed_word in go_gauge:
+                    stem_string += stemmed_word + ' '    
         stem_string = stem_string.strip()
         return stem_string
     elif stemmer == 'stemmatizer':
         stemmat = EnglishStemmer()
         stem_string = ''
         for token in tokens:
-            if token and token in go_gauge:
+            if token:
                 stemmed_word = stemmat.stem(token)
-                stem_string += stemmed_word + ' '    
+                if stemmed_word in go_gauge:
+                    stem_string += stemmed_word + ' '    
         stem_string = stem_string.strip()
         return stem_string
     else:
@@ -114,7 +116,7 @@ def new_column_lemmatizer(text_series):
 
             return lemmed_series
     else:
-        raise TypeError('function must take a pd.Series as argument')
+        raise TypeError('function must take a pd.Series or a string as argument')
 
 def new_column_stemmatizer(text_series):
     """
