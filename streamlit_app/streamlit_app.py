@@ -28,11 +28,17 @@ def load_best_models():
     with open('../notebooks/Classification/LogisticBestModel.pkl', 'rb') as file:
         logistic_model = pickle.load(file)
     return rf_model, hgbr_model, logistic_model
+@st.cache_data
+def dfCV_Func():
+    dfCV = pd.read_csv('ReducedExampleRatings.csv')
+    return dfCV
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
+
 df = load_data()
 rf_model, hgbr_model, logistic_model = load_best_models()
+dfCV = dfCV_Func()
 
 # Set the title and sidebar
 st.title("Comparison of Text Mined Customer Review Rating Prediction Models ")
@@ -113,22 +119,22 @@ if page == pages[1] :
     st.markdown("Other columns can also be processed to enable further investigations and project \
              expansions. Though these extra deliverables will depend on favourable project scope and timeline.")
     st.markdown("#### Source Citation:")
-    st.write('The original dataset analysed in our project is taken from the research paper')
+    st.markdown('The original dataset analysed in our project is taken from the research paper')
     st.markdown("""> **Justifying recommendations using distantly-labeled reviews and fined-grained aspects**  
 > Jianmo Ni, Jiacheng Li, Julian McAuley  
 > _Empirical Methods in Natural Language Processing (EMNLP), 2019_""")
-    st.write('\n For more details on the source of our data, you can access the full research paper under following address: *https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/*')
-    st.write('From the extensive dataset provided in the previously cited paper, only the category **Appliances** was selected for \
+    st.markdown('For more details on the source of our data, you can access the full research paper under following address: *https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/*')
+    st.markdown('From the extensive dataset provided in the previously cited paper, only the category **Appliances** was selected for \
              further analysis. This was based on the size of the given subcategory, ranging from 500,000 to 1 million records, \
              as it provides a careful balance between data volume and computational efficiency. The aim was to ensure the availability \
              of a sufficiently robust dataset for effective training and validation of machine learning models, while avoiding the \
              potential for long running times in excess of 24 hours.')
     st.markdown('## Data Overview')
-    st.write('This dataset contains a collection of products and associated ratings and additional information within \
+    st.markdown('This dataset contains a collection of products and associated ratings and additional information within \
              the selected **Appliances** category. This initial view of the provided **.json** dataset with the **.head()** function provides an \
              initial understanding of the structure and content of the dataset.')
-    st.write(df.head())
-    st.write('The information provided in each column of the dataset is explained in the following table, containing also number of Null Records.')
+    st.dataframe(df.head())
+    st.markdown('The information provided in each column of the dataset is explained in the following table, containing also number of Null Records.')
     st.dataframe(load_synopsis())
     st.markdown('### Missing values')
     st.image('../images/MissingValuesHeatmap01.png')
@@ -192,16 +198,7 @@ if page == pages[1] :
             and TFIDF Vectorizer from sci-kit Learns text library.')
     st.markdown('##### Vectorized data')
     st.markdown('An example of vectorized data using **CountVectorizer**(max_features=100).')
-    CVsparse = new_count_vectorize_data(df['reviewText'], max_features=100)
-    CVdense = CVsparse.toarray()
-    with open('full_vocab_list.csv', 'r') as file:
-        csv_list = file.read().strip()
-        header_list = csv_list.split(',')
-    dfCV = pd.DataFrame(CVdense, columns=header_list)
-    df.rename(columns={'overall': 'OverallRating'}, inplace=True)
-    df_new = pd.concat([df['OverallRating'], dfCV], axis=1)
-    df_new.to_csv('./ReducedExampleRatings.csv')
-    st.write(df_new.head())
+    st.dataframe(dfCV)
     st.markdown("The data was also vectorized using Google's Word2Vec model, which did not use the stemmers to produce \
             vectors.")
     st.markdown("## A Note on Sampling")
