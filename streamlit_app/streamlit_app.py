@@ -17,8 +17,10 @@ import os
 # Load the data
 @st.cache_data
 def load_data():
-    df = pd.read_csv('../data/train.csv')
-    return df
+    df = pd.read_csv('exampleDF.csv')
+    df['reviewTime'] = pd.to_datetime(df['reviewTime'])
+    dfCV = pd.read_csv('ReducedExampleRatings.csv')
+    return df, dfCV
 @st.cache_data
 def load_best_models():
     with open('../notebooks/Classification/RFBestModel.pkl', 'rb') as file:
@@ -28,17 +30,12 @@ def load_best_models():
     with open('../notebooks/Classification/LogisticBestModel.pkl', 'rb') as file:
         logistic_model = pickle.load(file)
     return rf_model, hgbr_model, logistic_model
-@st.cache_data
-def dfCV_Func():
-    dfCV = pd.read_csv('ReducedExampleRatings.csv')
-    return dfCV
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
+st.set_page_config(layout="wide")
 
-
-df = load_data()
+df, dfCV = load_data()
 rf_model, hgbr_model, logistic_model = load_best_models()
-dfCV = dfCV_Func()
 
 # Set the title and sidebar
 st.title("Comparison of Text Mined Customer Review Rating Prediction Models ")
@@ -92,7 +89,6 @@ if page == pages[1] :
         }
 
         column_df = pd.DataFrame(column_dict)
-        column_df = column_df.set_index("Column Heading")
         return column_df
     
     @st.cache_data
@@ -102,7 +98,6 @@ if page == pages[1] :
             "Percentage of Reviews": ['69%', '13%', '5%', '3%', '10%']
         }
         rating_df = pd.DataFrame(rating_dict)
-        rating_df = rating_df.set_index("overall")
         return rating_df
 
     st.title("Dataset Quality")
@@ -133,17 +128,17 @@ if page == pages[1] :
     st.markdown('This dataset contains a collection of products and associated ratings and additional information within \
              the selected **Appliances** category. This initial view of the provided **.json** dataset with the **.head()** function provides an \
              initial understanding of the structure and content of the dataset.')
-    st.dataframe(df.head())
+    st.dataframe(df, hide_index=True)
     st.markdown('The information provided in each column of the dataset is explained in the following table, containing also number of Null Records.')
-    st.dataframe(load_synopsis())
+    st.dataframe(load_synopsis(), hide_index=True)
     st.markdown('### Missing values')
     st.image('../images/MissingValuesHeatmap01.png')
 
     st.markdown('### Target Data Balance')
     # Create two columns for layout
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1, 3])
     with col1:
-        st.dataframe(ratings())
+        st.dataframe(ratings(), hide_index=True)
     with col2:
         st.image('../images/OverallRatingBalance.png')
     st.markdown('The target column ‘overall’ is imbalanced, as shown by the graph above. This indicates \
@@ -156,7 +151,7 @@ if page == pages[1] :
     st.markdown('### Dataset Preprocessing')
     st.markdown('For further preprocessing, only the selected **Targer** and **Features** columns will be used.')
     st.markdown('###### Selected Target and Features')
-    st.write(df[['overall', 'reviewText']].head())
+    st.dataframe(df[['overall', 'reviewText']], hide_index=True)
     st.markdown("To achieve the best possible results from the dataset it is essential to reduce and format\
             the dataset into a data type and format that enables the models to generate the best possible\
             accuracies.  ")
@@ -167,6 +162,128 @@ if page == pages[1] :
             were compared to nltk's English stopwords and stopwords were removed.")
     code_snippet = """
     # Function to clean the review text
+
+    ---------------------------------------------------------------------------------------------------------------------------
+    Adam submission - This code was not used, but is representative of the cumulative actions of the functions before stemming.
+    ---------------------------------------------------------------------------------------------------------------------------
+    def vocab_creator(text_series):
+        # Function to generate a vocabulary list. Use on the entire dataset for a comprehensive vocabulary.
+        # This code is not identical to the vocabulary code, which was optimized for multiprocessing, but represents
+        # the vocabulary process.
+
+        from nltk.corpus import stopwords
+        from nltk.tokenize.regexp import RegexpTokenizer
+        from nltk.stem import WordNetLemmatizer
+        from spellchecker import SpellChecker
+        import pandas as pd
+        import re
+
+        # Initialize tokenizer to remove non alphabetical characters
+        tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
+
+        # Initialize stop words to reduce unimportant features
+        stop_words = set(stopwords.words('english'))
+
+        #Only Series are expected by the function, otherwise a value error is raised.
+        if isinstance(text_series, pd.Series):
+        
+        # Initialize a list to hold the final returned vocabulary.
+            vocab_list = []
+            for item in text_series:
+                if isinstance(text, str):
+                    
+                    # remove all text between the first and last html tags
+                    item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', text)
+
+                    # remove all remaining non alphabetical text and parse as lowercase.
+                    item_tokens = tokenizer.tokenize(item_no_tags.lower())
+
+                    for token in item_tokens:
+                    
+                        # For each word correct spelling mistakes
+                        corrected_token = spell_checker.correction(token.strip())
+
+                        # convert the surviving tokens to their relative stem
+                        if corrected_token:
+                            stemmed_token = lemmatizer.lemmatize(corrected_token)
+
+                        # add words that exist and are not included in stop words to the vocab list
+                        if stemmed_token not in stop_words:
+                            vocab_list.append(stemmed_token)
+                            stop_words.append(corrected_token)
+            return vocab_list
+        else:
+            raise TypeError('Function must take a pd.Series as argument')
+
+    def text_converter(text_series):
+        # Function to convert review series into keys that match the vocabulary..
+        # This code is not identical to the vocabulary code, which was optimized for multiprocessing, but represents
+
+        from nltk.corpus import stopwords
+        from nltk.tokenize.regexp import RegexpTokenizer
+        from nltk.stem import WordNetLemmatizer
+        from spellchecker import SpellChecker
+        import pandas as pd
+        import re
+
+        # Initialize tokenizer to remove non alphabetical characters
+        tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
+
+        # Initialize or import vocab list
+        with open('full_vocab_list.csv', 'r') as file:
+            csv_list = file.read().strip()
+            go_gauge = csv_list.split(',')
+
+        # The function needs to parse strings as well as series, 
+        # this if statement converts a singular string to a Pandas Sereis of length 1
+        if isinstance(text_series, str):
+            if text_series.strip() != '': # Check that empty strings are not parsed.
+                text_series = pd.Series([text_series])
+
+        #Only Series are expected by the function, otherwise a value error is raised.
+        if isinstance(text_series, pd.Series):
+        
+        # Initialize a list to hold the final returned series.
+            full_series = []
+            for item in text_series:
+                if isinstance(text, str):
+                    
+                    # remove all text between the first and last html tags
+                    item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', text)
+
+                    # remove all remaining non alphabetical text and parse as lowercase.
+                    item_tokens = tokenizer.tokenize(item_no_tags.lower())
+
+                    # initialize a string for the tokenized review text
+                    stemmed_string = ''
+
+                    for token in item_tokens:
+                    
+                        # For each word correct spelling mistakes
+                        corrected_token = spell_checker.correction(token.strip())
+
+                        # convert the surviving tokens to their relative stem
+                        if corrected_token:
+                            stemmed_token = lemmatizer.lemmatize(corrected_token)
+
+                        # add words that exist and are included in predfined vocabulary.
+                        if stemmed_token in go_gauge:
+                            stemmed_string += stemmed_token + ' '
+
+                    stemmed_string = stemmed_string.strip()
+                
+                full_series.append(stemmed_string)
+
+            # Return the list of stemmed string sentences as a pandas Series
+            return pd.Series(full_series)
+
+        else:
+            raise TypeError('Function must take a pd.Series or string as argument')
+
+    -------------------
+    Adam Submission End
+    -------------------
+        
     def clean_text(text):
         # Convert non-string to empty string
         if not isinstance(text, str):
@@ -192,163 +309,15 @@ if page == pages[1] :
     """
     st.code(code_snippet, language='python')
     st.markdown('Several further methods were implemented to ready the dataset for modelling. These included \
-            WordNetLemmatizer and the ENglishStemmer from the nltk.stem library. These models reduce the words to \
+            WordNetLemmatizer and the EnglishStemmer from the nltk.stem library. These models reduce the words to \
             roots of the word in different formats. To enable machine learning on these stemming methods, \
             the datasets need to be converted to number vectors and a further two models in the CountVectorizer \
             and TFIDF Vectorizer from sci-kit Learns text library.')
     st.markdown('##### Vectorized data')
     st.markdown('An example of vectorized data using **CountVectorizer**(max_features=100).')
-    st.dataframe(dfCV)
+    st.dataframe(dfCV, hide_index=True)
     st.markdown("The data was also vectorized using Google's Word2Vec model, which did not use the stemmers to produce \
             vectors.")
-    st.markdown("## A Note on Sampling")
-    st.markdown("It is obvious that the dataset is imbalanced, analysis was also performed on 4 samplers to see \
-            which would be the most beneficial to the models, however the model quality was too poor for the \
-            sampling results to be valid and so sampling was not well rated. Instead models are attuned on raw \
-            unless an improvement is seen through smapling and oversampling techniques are largely dropped due \
-            to data/working memory limitations.")
-    st.markdown('Although the samplers proved to be unuseful, each one had a gridsearch performed to identify the maximum \
-            potential sample with the given parameters.')
-    
-    options = {
-        'RandomOverSampler, RandomUndersampler, no sampling',
-        'Synthetic Minority Over Sampling Technique',
-        'Cluster Centroids'
-    }
-
-    sampler_display = st.radio('The tested parameters included:', (
-        'RandomOverSampler, RandomUndersampler, no sampling',
-        'Synthetic Minority Over Sampling Technique',
-        'Cluster Centroids'
-    ))
-    if sampler_display == 'RandomOverSampler, RandomUndersampler, no sampling':
-        st.markdown('For the simpler models a simple best accuracy with the selected Sampler was taken. \
-                For models with several arguments to be tested, these were tested simultaneously with \
-                the sampler gridsearch to save computation in later more complex tests. These parameters \
-                were graphed when available.')
-        sample_display = st.radio('Which model do you want to view?', (
-            'Linear Regression',
-            'Lasso Regression',
-            'Ridge Regression',
-            'ElasticNet Regression',
-            'HGBC Regression'))
-        if sample_display == 'Linear Regression':
-            st.markdown("""The best results were returned by the English Stemmer TFIDF Vector text processes which were sampled by the RandomOverSampler.  
-* Accuracy: 0.525
-* Mean Squared Error: 2.020""")
-        elif sample_display == 'Lasso Regression':
-            st.markdown("""The best Lasso results were provided by the lemmatized Count Vector processes with no sampling.  
-* Accuracy: 0.284
-* Mean Squared Error: 0.271""")
-            st.markdown('Lasso alpha values between 0.001 and 0.3 were tested simultaneously.')
-            st.image('../images/lasso_alphas.png', use_column_width=True)
-        elif sample_display == 'Ridge Regression':
-            st.markdown("""The best Ridge results were provided by:  
-* Lemmatizer Count Vector with RandomOverSampler sampling:  
-    * Accuracy: 0.557  
-    * Mean Squared Error: 2.915  
-* Lemmatizer TFIDF Vector with RandomOverSampler sampling:
-    * Accuracy: 0.478
-    * Mean Squared Error: 1.11""")
-            st.markdown('Ridge alpha values between 0.001 and 0.3 were tested simultaneously. Though \
-                    0.001 has the best accuracy, 0.3 was take forward as the Mean Squared Error nearly tripled \
-                    at lower alphas.')
-            st.image('../images/ridge_alphas.png', use_column_width=True)
-        elif sample_display == 'ElasticNet Regression':
-            st.markdown("""The best ElasticNet results were provided by:  
-* Lemmatizer Count Vector with RandomOverSampler sampling:  
-    * Accuracy: 0.318  
-    * Mean Squared Error: 1.406  
-* Lemmatizer Count Vector with no sampling:  
-    * Accuracy: 0.296  
-    * Mean Squared Error: 1.577""")
-            st.markdown('ElasticNet alpha values between 0.001 and 0.3 and L1 ratio values between 0.3 and 0.7 were \
-                    tested simultaneously.')
-            st.image('../images/enet_alphas.png', use_column_width=True)
-            st.image('../images/enet_l1_ratios.png', use_column_width=True)
-        elif sample_display == 'HGBC Regression':
-            st.markdown("""The best HGBC results were provided by:  
-* Lemmatizer TFIDF Vector with RandomOverSampler sampling:  
-    * Accuracy: 0.499  
-    * Mean Squared Error: 1.351  
-* Lemmatizer TFIDF Vector with no sampling:  
-    * Accuracy: 0.410  
-    * Mean Squared Error: 1.351""")
-            st.markdown('HGBC learning rate values between 0.1 and 0.5 and max depths between 50 and 1000 were \
-                    tested simultaneously.')
-            st.image('../images/hgbr_learn_rate.png', use_column_width=True)
-            st.image('../images/hgbr_max_depth.png', use_column_width=True)
-    elif sampler_display == 'Synthetic Minority Over Sampling Technique':
-        sample_display = st.radio('Which model do you want to view?', (
-            'Linear Regression',
-            'Lasso Regression',
-            'Ridge Regression',
-            'ElasticNet Regression',
-            'HGBC Regression'))
-        if sample_display == 'Linear Regression':
-            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
-* Lemmatizer TFIDF Vector - 500 k_neighbors  
-    * Accuracy: 0.566  
-    * Mean Squared Error: 2.96  
-* Lemmatizer TFIDF Vector - 1000 k_neighbors  
-    * Accuracy: 0.535  
-    * Mean Squared Error: 1.98""")
-            st.markdown('Though 500 k_neighbors has the best accuracy, 1000 k_neighbors were taken forward as the \
-                     Mean Squared Error and R Squared values (R Squared not shown) performed marginally better.')
-            st.image('../images/lr_smote_k_neighbors.png', use_column_width=True)
-        elif sample_display == 'Lasso Regression':
-            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
-* English Stemmer TFIDF Vector - 500 k_neighbors  
-    * Accuracy: 0.224  
-    * Mean Squared Error: 1.61  
-* Lemmatizer Count Vector - 1000 k_neighbors  
-    * Accuracy: 0.211  
-    * Mean Squared Error: 1.54""")
-            st.image('../images/lasso_smote_k_neighbors.png', use_column_width=True)
-        elif sample_display == 'Ridge Regression':
-            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
-* Lemmatizer TFIDF Vector - 1000 k_neighbors  
-    * Accuracy: 0.490  
-    * Mean Squared Error: 1.081""")
-            st.image('../images/ridge_smote_k_neighbors.png', use_column_width=True)
-        elif sample_display == 'ElasticNet Regression':
-            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
-* Lemmatizer Count Vector - 1000 k_neighbors  
-    * Accuracy: 0.237  
-    * Mean Squared Error: 1.489""")
-            st.image('../images/enet_smote_k_neighbors.png', use_column_width=True)
-        elif sample_display == 'HGBC Regression':
-            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
-* Lemmatizer Count Vector - 50 k_neighbors  
-    * Accuracy: 0.486  
-    * Mean Squared Error: 1.188  
-* Lemmatizer TFIDF Vector - 250 k_neighbors  
-    * Accuracy: 0.443  
-    * Mean Squared Error: 1.184  
-* Lemmatizer TFIDF Vector - 100 k_neighbors  
-    * Accuracy: 0.0.446  
-    * Mean Squared Error: 1.176""")
-            st.image('../images/hgbr_smote_k_neighbors.png', use_column_width=True)
-    elif sampler_display == 'Cluster Centroids':
-        st.markdown('Although it was suspected that the Cluster Centroids sampler would perform well\n \
-                if the dataset responds well to classification techniques, the Cluster Centroids method had no \
-                effect on most of the models, only the HGBR model showed any change, and even that change was insignificant.')
-        sample_display = st.radio('Which model do you want to view?', (
-            'Linear Regression',
-            'Lasso Regression',
-            'Ridge Regression',
-            'ElasticNet Regression',
-            'HGBC Regression'))
-        if sample_display == 'Linear Regression':
-            st.image('../images/lr_cc_n_clusters.png', use_column_width=True)
-        elif sample_display == 'Lasso Regression':
-            st.image('../images/lasso_cc_n_clusters.png', use_column_width=True)
-        elif sample_display == 'Ridge Regression':
-            st.image('../images/ridge_cc_n_clusters.png', use_column_width=True)
-        elif sample_display == 'ElasticNet Regression':
-            st.image('../images/enet_cc_n_clusters.png', use_column_width=True)
-        elif sample_display == 'HGBC Regression':
-            st.image('../images/hgbr_cc_n_clusters.png', use_column_width=True)
     
 if page == pages[2]:
     @st.cache_data
@@ -526,6 +495,7 @@ if page == pages[2]:
     @st.cache_resource()
     def plot_and_show_accuracy_by_model():
         data = concat_two_dfs_vertical()
+        plt.figure(figsize=(5, 5))
         fig = sns.catplot(x='Model', y='Accuracy', hue='Accuracy Type', data=data, kind='bar')
         plt.xticks(rotation=90)
         plt.title('Accuracies by Model')
@@ -580,8 +550,13 @@ if page == pages[2]:
             chosen over the GradientBoostingRegressor (GBR) and the GradientBoostingClassifier (GBC) to reduce \
             runtimes whilst operating on reasonably sized datasets.')
     st.markdown('## Model Comparisons')
-    st.dataframe(concat_two_dfs_vertical())
-    st.pyplot(plot_and_show_accuracy_by_model())
+    st.dataframe(concat_two_dfs_vertical(), hide_index=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.pyplot(plot_and_show_accuracy_by_model(), use_container_width=True)
+    with col2:
+        st.write("")
+    
     st.markdown('## Results Analysis')
     st.markdown("The results show that Classification techniques are more suited to the text data, however \
             none of the results are strong enough to clearly define the models as better than a basic model. The \
@@ -591,7 +566,12 @@ if page == pages[2]:
             class 5.")
     st.markdown("77% Accuracy is only 8% better than a basic model that returns class 5 for every prediction and so this model \
             can not be considered very strong.")
-    st.image('../images/SVMBestConfMatrix.png', caption='Best Model Accuracy (SVM) Confusion Matrix', use_column_width=True)
+    col1, col2 = st.columns([3,1])
+    with col1:
+        st.image('../images/SVMBestConfMatrix.png', caption='Best Model Accuracy (SVM) Confusion Matrix', use_column_width=True)
+    with col2:
+        st.write("")
+    
     st.markdown('### Google Word 2 Vector Analysis')
     st.markdown("The google Word 2 Vector Vectorizer is a text processor that assesses word relationships to support the \
             google search engine. Though the model is designed for search engine modelling rather than sentiment \
@@ -605,47 +585,237 @@ if page == pages[2]:
             processes and the number of records used to train the dataset.")
     st.markdown("Due to time constraints in the project, only two models with low processing times were modelled with the \
             word2vec text process, and no word stemming was used.")
-    st.dataframe(Word2Vec_df())
-    st.image('../images/lrW2VConfMatrix.png', caption='Logistic Regression Word 2 Vector Confusion Matrix', use_column_width=True)
-    st.image('../images/rfW2VConfMatrix.png', caption='Random Forest Word 2 Vector Confusion Matrix', use_column_width=True)
+    st.dataframe(Word2Vec_df(), hide_index=True)
+    col1, col2, col3 = st.columns([2, 2, 1])
+    with col1:
+        st.image('../images/lrW2VConfMatrix.png', caption='Logistic Regression Word 2 Vector Confusion Matrix', use_column_width=True)
+    with col2:
+        st.image('../images/rfW2VConfMatrix.png', caption='Random Forest Word 2 Vector Confusion Matrix', use_column_width=True)
+    with col3:
+        st.write("")
+    
+    
     st.markdown('The score has worsened in comparison to the target baseline accuracy of 69%. \
             This is most likely due to the mismatch of the search engine preprocessing application and the sentiment analysis \
             application that is being performed. It is possible to customize the Word 2 Vec process for individual use cases. \
             This is a good starting point for further analysis.')
-    st.markdown('## Continuing the Investigation')
-    st.markdown('Even the best model is not particularly strong, hence more work must be performed to discover a \
-            suitable model strength and provide accurate review ratings, or accurate sentiment analysis. \
-            The next logical steps include improving the preprocessing methods or improving the machine \
-            learning models that generated these results.')
-    st.markdown('### Improving Preprocessing')
-    st.markdown("Sampling had a negative affect on the accuracy results and as such sampling was omitted from the finalized accuracies. \
-            This can only be because important features in the dataset were becoming diffused either by overproduction \
-            of unimportant features, or through removal of important features.")
-    st.markdown("This indicates that feature selection could yield better accuracies, by removing the diffusion and \
-            allowing the modelling processes to better analysze the data.")
-    st.markdown('### Improving Modelling')
-    st.markdown('Another analysis tool that has not yet been applied to the dataset is the **SHAP** (SHapley Additive exPlanations). \
-                SHAP analysis is a powerful machine learning technique that explains the influence of individual features on the predictions \
-                of a model. It can provide deeper insights into the relationships between words and their impact on the results. The following \
-                figures show examples of SHAP analysis based on a part of our dataset, which is only 5%, using the CountVectoriser with a \
-                maximum of 100 features. The calculation of this limited part took about 1832 minutes.')
-    st.markdown('More complex models such as Deep Learning models could be implemented for such a purpose.')
-    st.markdown('##### Overall SHAP analysis for all 5 classes')
-    st.image('../images/ShapOverall.png')
-    st.markdown('\n')
-    st.markdown('Next images.')
-    # Create columns for layout
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        st.image('../images/Shap01.png')
-    with col2:
-        st.image('../images/Shap02.png')
-    with col3:
-        st.image('../images/Shap03.png')
-    with col4:
-        st.image('../images/Shap04.png')
-    with col5:
-        st.image('../images/Shap05.png')
+    st.markdown("## A Note on Sampling")
+    st.markdown("It is obvious that the dataset is imbalanced, analysis was also performed on 4 samplers to see \
+            which would be the most beneficial to the models, however the model quality was too poor for the \
+            sampling results to be valid and so sampling was not well rated. Instead models are attuned on raw \
+            unless an improvement is seen through smapling and oversampling techniques are largely dropped due \
+            to data/working memory limitations.")
+    st.markdown('Although the samplers proved to be unuseful, each one had a gridsearch performed to identify the maximum \
+            potential sample with the given parameters.')
+    
+    options = {
+        'RandomOverSampler, RandomUndersampler, no sampling',
+        'Synthetic Minority Over Sampling Technique',
+        'Cluster Centroids'
+    }
+
+    sampler_display = st.radio('The tested parameters included:', (
+        'RandomOverSampler, RandomUndersampler, no sampling',
+        'Synthetic Minority Over Sampling Technique',
+        'Cluster Centroids'
+    ))
+    if sampler_display == 'RandomOverSampler, RandomUndersampler, no sampling':
+        st.markdown('For the simpler models a simple best accuracy with the selected Sampler was taken. \
+                For models with several arguments to be tested, these were tested simultaneously with \
+                the sampler gridsearch to save computation in later more complex tests. These parameters \
+                were graphed when available.')
+        sample_display = st.radio('Which model do you want to view?', (
+            'Linear Regression',
+            'Lasso Regression',
+            'Ridge Regression',
+            'ElasticNet Regression',
+            'HGBC Regression'))
+        if sample_display == 'Linear Regression':
+            st.markdown("""The best results were returned by the English Stemmer TFIDF Vector text processes which were sampled by the RandomOverSampler.  
+* Accuracy: 0.525
+* Mean Squared Error: 2.020""")
+        elif sample_display == 'Lasso Regression':
+            st.markdown("""The best Lasso results were provided by the lemmatized Count Vector processes with no sampling.  
+* Accuracy: 0.284
+* Mean Squared Error: 0.271""")
+            st.markdown('Lasso alpha values between 0.001 and 0.3 were tested simultaneously.')
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/lasso_alphas.png', use_column_width=True)
+            with col2:
+                st.write("")
+
+        elif sample_display == 'Ridge Regression':
+            st.markdown("""The best Ridge results were provided by:  
+* Lemmatizer Count Vector with RandomOverSampler sampling:  
+    * Accuracy: 0.557  
+    * Mean Squared Error: 2.915  
+* Lemmatizer TFIDF Vector with RandomOverSampler sampling:
+    * Accuracy: 0.478
+    * Mean Squared Error: 1.11""")
+            st.markdown('Ridge alpha values between 0.001 and 0.3 were tested simultaneously. Though \
+                    0.001 has the best accuracy, 0.3 was take forward as the Mean Squared Error nearly tripled \
+                    at lower alphas.')
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/ridge_alphas.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
+        elif sample_display == 'ElasticNet Regression':
+            st.markdown("""The best ElasticNet results were provided by:  
+* Lemmatizer Count Vector with RandomOverSampler sampling:  
+    * Accuracy: 0.318  
+    * Mean Squared Error: 1.406  
+* Lemmatizer Count Vector with no sampling:  
+    * Accuracy: 0.296  
+    * Mean Squared Error: 1.577""")
+            st.markdown('ElasticNet alpha values between 0.001 and 0.3 and L1 ratio values between 0.3 and 0.7 were \
+                    tested simultaneously.')
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/enet_alphas.png', use_column_width=True)
+            with col2:
+                st.image('../images/enet_l1_ratios.png', use_column_width=True)
+            
+        elif sample_display == 'HGBC Regression':
+            st.markdown("""The best HGBC results were provided by:  
+* Lemmatizer TFIDF Vector with RandomOverSampler sampling:  
+    * Accuracy: 0.499  
+    * Mean Squared Error: 1.351  
+* Lemmatizer TFIDF Vector with no sampling:  
+    * Accuracy: 0.410  
+    * Mean Squared Error: 1.351""")
+            st.markdown('HGBC learning rate values between 0.1 and 0.5 and max depths between 50 and 1000 were \
+                    tested simultaneously.')
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/hgbr_learn_rate.png', use_column_width=True)
+            with col2:
+                st.image('../images/hgbr_max_depth.png', use_column_width=True)
+            
+            
+    elif sampler_display == 'Synthetic Minority Over Sampling Technique':
+        sample_display = st.radio('Which model do you want to view?', (
+            'Linear Regression',
+            'Lasso Regression',
+            'Ridge Regression',
+            'ElasticNet Regression',
+            'HGBC Regression'))
+        if sample_display == 'Linear Regression':
+            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
+* Lemmatizer TFIDF Vector - 500 k_neighbors  
+    * Accuracy: 0.566  
+    * Mean Squared Error: 2.96  
+* Lemmatizer TFIDF Vector - 1000 k_neighbors  
+    * Accuracy: 0.535  
+    * Mean Squared Error: 1.98""")
+            st.markdown('Though 500 k_neighbors has the best accuracy, 1000 k_neighbors were taken forward as the \
+                     Mean Squared Error and R Squared values (R Squared not shown) performed marginally better.')
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/lr_smote_k_neighbors.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
+        elif sample_display == 'Lasso Regression':
+            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
+* English Stemmer TFIDF Vector - 500 k_neighbors  
+    * Accuracy: 0.224  
+    * Mean Squared Error: 1.61  
+* Lemmatizer Count Vector - 1000 k_neighbors  
+    * Accuracy: 0.211  
+    * Mean Squared Error: 1.54""")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/lasso_smote_k_neighbors.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
+        elif sample_display == 'Ridge Regression':
+            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
+* Lemmatizer TFIDF Vector - 1000 k_neighbors  
+    * Accuracy: 0.490  
+    * Mean Squared Error: 1.081""")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/ridge_smote_k_neighbors.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
+        elif sample_display == 'ElasticNet Regression':
+            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
+* Lemmatizer Count Vector - 1000 k_neighbors  
+    * Accuracy: 0.237  
+    * Mean Squared Error: 1.489""")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/enet_smote_k_neighbors.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
+        elif sample_display == 'HGBC Regression':
+            st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
+* Lemmatizer Count Vector - 50 k_neighbors  
+    * Accuracy: 0.486  
+    * Mean Squared Error: 1.188  
+* Lemmatizer TFIDF Vector - 250 k_neighbors  
+    * Accuracy: 0.443  
+    * Mean Squared Error: 1.184  
+* Lemmatizer TFIDF Vector - 100 k_neighbors  
+    * Accuracy: 0.0.446  
+    * Mean Squared Error: 1.176""")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/hgbr_smote_k_neighbors.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
+    elif sampler_display == 'Cluster Centroids':
+        st.markdown('Although it was suspected that the Cluster Centroids sampler would perform well\n \
+                if the dataset responds well to classification techniques, the Cluster Centroids method had no \
+                effect on most of the models, only the HGBR model showed any change, and even that change was insignificant.')
+        sample_display = st.radio('Which model do you want to view?', (
+            'Linear Regression',
+            'Lasso Regression',
+            'Ridge Regression',
+            'ElasticNet Regression',
+            'HGBC Regression'))
+        if sample_display == 'Linear Regression':
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/lr_cc_n_clusters.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
+        elif sample_display == 'Lasso Regression':
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/lasso_cc_n_clusters.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
+        elif sample_display == 'Ridge Regression':
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/ridge_cc_n_clusters.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
+        elif sample_display == 'ElasticNet Regression':
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/enet_cc_n_clusters.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
+        elif sample_display == 'HGBC Regression':
+            col1, col2 = st.columns(2)
+            with col1:
+                st.image('../images/hgbr_cc_n_clusters.png', use_column_width=True)
+            with col2:
+                st.write("")
+            
 
 
 if page == pages[3]:
@@ -712,6 +882,9 @@ if page == pages[3]:
                 [user_result] = hgbr_model.predict(cv_dense)
                 st.markdown('### Model Prediction')
                 st.markdown(f'#### Class: {round(user_result, 2)}')
+    st.markdown("The original examples are displayed below for use with the tool.")
+    st.dataframe(df[['overall', 'reviewText']], hide_index=True)
+
 if page == pages[4]: 
     st.title('Conclusion and Next Steps')
     st.markdown("## Conclusion")
@@ -764,4 +937,57 @@ if page == pages[4]:
                 With this many records and more balance than present in the current dataset all function results should be improved, from preprocessing to modelling, including the \
                 feature extraction attempted in this further work. Working with this much data will require mass data handling and a pySpark or similar solution would need to be implemented \
                 to make analyses possible.")
-    st.markdown("### Improving Modelling")
+    st.markdown('### Improving Modelling')
+    st.markdown('Another analysis tool that has not yet been applied to the dataset is the **SHAP** (SHapley Additive exPlanations). \
+                SHAP analysis is a powerful machine learning technique that explains the influence of individual features on the predictions \
+                of a model. It can provide deeper insights into the relationships between words and their impact on the results. The following \
+                figures show examples of SHAP analysis based on a part of our dataset, which is only 5%, using the CountVectoriser with a \
+                maximum of 100 features. The calculation of this limited part took about 1832 minutes.')
+    st.markdown('More complex models such as Deep Learning models could be implemented for such a purpose.')
+    st.markdown('##### Overall SHAP analysis for all 5 classes')
+    st.image('../images/ShapOverall.png')
+    st.markdown('Next images.')
+    # Create columns for layout
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.image('../images/Shap01.png')
+    with col2:
+        st.image('../images/Shap02.png')
+    with col3:
+        st.image('../images/Shap03.png')
+    with col4:
+        st.image('../images/Shap04.png')
+    with col5:
+        st.image('../images/Shap05.png')
+    st.markdown("### A Combined Approach")
+    st.markdown("A key advantage of the regression modelling results is the analytical potential of the uncut results. These results allow observations to be drawn from the distribution of \
+                each class. In comparison, a key advantage of the classification models is the categorical output with accompanying model confidence. See the boxplot chart below for \
+                a graphical representation of these advantages.")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("##### Regression test spread analysis.")
+        st.image('../images/BoxplotTestCont.png', use_column_width=True)
+    with col2:
+        st.write("##### Classification test spread analysis.")
+        st.image('../images/ClassBoxplotTestCont.png', use_column_width=True)
+    st.markdown("A potential ideal result could be provided by amalgamating a deep learning model which takes advantage of these benefits. \
+                In such a model, several stages of processing would be performed on the text data before it is classified. \
+                This would allow a combination of methods to be applied to the dataset which makes the most of the strengths of each stage.")
+    st.markdown("""Example Deep Learning model: (This model does not consider a specific neural network framework, but instead an amalgamation of seen processes.)
+* Initial Parse: Custom Word2Vec model investigating word relations.
+    * Input: Text data as series.
+    * Output: vector matrix with stems as headers.
+* Initial reduction: Recursive feature extraction using the strongest regression model.
+    * estimator: HistogramGradientBoosting Regressor.
+    * scoring: neg_mean_squared_error
+    * target features: 0.95
+    * reduction targets the vocabulary rather than the dataset.
+    * Output: masked vector matrix from strongest 95% vocabulary items.
+* Secondary parsing: text data parsed using the previous stem and vector techniques.
+    * output: merged matrix on headers grouped by stemmed headers
+* Secondary Reduction: Same as initial reduction.
+* Final Classification: Utilizing the strongest classifier.""")
+    st.markdown("The Word2vec pass reduction pair can be looped together. The Secondary reduction can also be performed\
+                multiple times until a satisfactory number of features is achieved. The key advantage of using a regression model\
+                to reduce the important features is the precise mean squared error calculation. Ending the process with a classification\
+                model still provides the user with a clear category and confidence interval of the prediction.")
