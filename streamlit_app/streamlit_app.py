@@ -79,17 +79,26 @@ if page == pages[0]:
 if page == pages[1] :
     @st.cache_data
     def load_synopsis():
+        # column_dict = {
+        # "Column Heading": ['overall', 'vote', 'verified', 'reviewTime', 'reviewerID', 'asin', 'style',
+        #                    'reviewerName', 'reviewText', 'summary', 'unixreviewTime', 'image'],
+        # "Brief": ['TARGET – star ratings valued 1-5 ', 'Number of upvotes granted to the review ',
+        #           'Identifies verified buyers', 'Datetime review was left', 'Customer UID',
+        #           'Item reference number', 'String holding various item specifics', 'Review info',
+        #           'FEATURE - Text based review', 'Potential secondary Feature – review summary',
+        #           'Datetime for review in unix time', 'Review images if included in review'],
+        # "Number of Null Records": [0, 537515, 0, 0, 0, 0, 464804, 15, 324, 128, 0, 593519]
+        # }
         column_dict = {
         "Column Heading": ['overall', 'vote', 'verified', 'reviewTime', 'reviewerID', 'asin', 'style',
                            'reviewerName', 'reviewText', 'summary', 'unixreviewTime', 'image'],
-        "Brief": ['TARGET – star ratings valued 1-5 ', 'Number of upvotes granted to the review ',
-                  'Identifies verified buyers', 'Datetime review was left', 'Customer UID',
-                  'Item reference number', 'String holding various item specifics', 'Review info',
-                  'FEATURE - Text based review', 'Potential secondary Feature – review summary',
-                  'Datetime for review in unix time', 'Review images if included in review'],
+        "Brief": ['[TARGET] rating of the product', 'helpful votes of the review',
+                  'verified buyers', 'time of the review (raw)', 'ID of the reviewer, e.g. A2SUAM1J3GNN3B',
+                  'ID of the product, e.g. 0000013714', 'a disctionary of the product metadata, e.g., "Format" is "Hardcover"', 'name of the reviewer',
+                  '[FEATURE] text of the review', 'summary of the review',
+                  'time of the review (unix time)', 'images that users post after they have received the product'],
         "Number of Null Records": [0, 537515, 0, 0, 0, 0, 464804, 15, 324, 128, 0, 593519]
         }
-
         column_df = pd.DataFrame(column_dict)
         return column_df
     
