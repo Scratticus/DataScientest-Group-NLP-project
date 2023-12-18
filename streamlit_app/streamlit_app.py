@@ -40,7 +40,7 @@ rf_model, hgbr_model, logistic_model = load_best_models()
 # Set the title and sidebar
 st.title("Comparison of Text Mined Customer Review Rating Prediction Models ")
 st.sidebar.title("Table of Contents")
-pages = ["Project Goals", "DataSet Quality", "Machine Learning Methodologies", "Application", "Conclusions and Next Steps"]
+pages = ["Project Goals", "DataSet Quality", "Machine Learning Methodologies", "Application", "Conclusions", "Discussion Next Steps"]
 page = st.sidebar.radio("Go to", pages)
 
 if page == pages[0]:
@@ -886,7 +886,17 @@ if page == pages[3]:
     st.dataframe(df[['overall', 'reviewText']], hide_index=True)
 
 if page == pages[4]: 
-    st.title('Conclusion and Next Steps')
+    st.title('Conclusion')
+    st.markdown("## Conclusion")
+    st.markdown("The machine learning models generated in this report leave some accuracy to be desired. At best they match \
+            or marginally improve upon the baseline target accuracy of 69%, at worst the models dramatically reduce the \
+            accuracy below that target value.")
+    st.markdown("These models can not be used to predict review ratings with a high degree of confidence. Extreme\
+                values can be predicted with some degree of confidence, but nuance is easily lost in the models. Further \
+                imrpovements are required to create a suitable model that provides confidence in the results provided.")
+    
+if page == pages[5]: 
+    st.title('Discussion and Next Steps')
     st.markdown("## Conclusion")
     st.markdown("The machine learning models generated in this report leave some accuracy to be desired. At best they match \
             or marginally improve upon the baseline target accuracy of 69%, at worst the models dramatically reduce the \
