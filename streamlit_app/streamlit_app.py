@@ -110,6 +110,12 @@ if page == pages[1] :
         }
         rating_df = pd.DataFrame(rating_dict)
         return rating_df
+    
+    @st.cache_data
+    def lem_stem():
+        lem = pd.read_csv('lem_example.csv')
+        stem = pd.read_csv('stem_example.csv')
+        return lem, stem
 
     st.title("Dataset Quality")
     st.markdown('## Data Source')
@@ -326,23 +332,16 @@ if page == pages[1] :
             WordNetLemmatizer and the EnglishStemmer from the nltk.stem library. These models reduce the words to \
             roots of the word in different formats. Following tables and Wordclouds represent a comparison between two \
             text-processing methods used.')
+    lem, stem = lem_stem()
     # st.markdown('Following tables and Wordclouds represent a comparison between two text-processing methods used.')
     col1, col2 = st.columns(2)
     with col1:
         st.markdown('##### Lemmatized text')
-        table_data = {
-        'Common words': ['work', 'one', 'great', 'filter', 'dryer', 'product', 'fit', 'vent', 'water', 'good', 'time', 'well', 'use', 'would', 'get', 'like', 'easy', 'price', 'clean', 'year'],
-        'Count': [26024, 25752, 23187, 21712, 18939, 17920, 17147, 16476, 16133, 15679, 15413, 13846, 13728, 13693, 12881, 12041, 11674, 11401, 9705, 9640]
-        }
-        st.table(table_data)
+        st.dataframe(lem, hide_index=True)
         st.image('../images/WordcloudLem2.png')
     with col2:
         st.markdown('##### Stemmatized text')
-        table_data = {
-        'Common words': ['stranger', 'book', 'us', 'alan', 'gregorian', 'idea', 'innovn', 'new', 'think', 'open', 'one', 'insight', 'differ', 'peopl', 'necess', 'read', 'learn', 'great', 'get', 'realli'],
-        'Count': [55, 52, 33, 28, 26, 25, 24, 20, 19, 17, 16, 15, 14, 13, 13, 12, 12, 10, 10, 10]
-        }
-        st.table(table_data)
+        st.dataframe(stem, hide_index=True)
         st.image('../images/WordcloudStem.png')
     st.markdown('To enable machine learning on these stemming methods, \
             the datasets need to be converted to number vectors and a further two models in the CountVectorizer \
