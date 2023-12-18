@@ -42,7 +42,7 @@ rf_model, hgbr_model, logistic_model = load_best_models()
 # Set the title and sidebar
 st.title("Comparison of Text Mined Customer Review Rating Prediction Models ")
 st.sidebar.title("Table of Contents")
-pages = ["Project Goals", "DataSet Quality", "Machine Learning Methodologies", "Application", "Conclusions", "Discussion Next Steps"]
+pages = ["Project Goals", "DataSet Quality", "Machine Learning Methodologies", "Application", "Conclusion", "Discussion and Next Steps"]
 page = st.sidebar.radio("Go to", pages)
 
 if page == pages[0]:
@@ -180,154 +180,6 @@ if page == pages[1] :
             to the correct spelling and tokenised. To achieve these results, Regex, pyspellchecker and the \
             RegExTokenizer were used to pre process the text in each review In addition to this the reviews\
             were compared to nltk's English stopwords and stopwords were removed.")
-    # code_snippet = """
-    # # Function to clean the review text
-
-    # ---------------------------------------------------------------------------------------------------------------------------
-    # Adam submission - This code was not used, but is representative of the cumulative actions of the functions before stemming.
-    # ---------------------------------------------------------------------------------------------------------------------------
-    # def vocab_creator(text_series):
-    #     # Function to generate a vocabulary list. Use on the entire dataset for a comprehensive vocabulary.
-    #     # This code is not identical to the vocabulary code, which was optimized for multiprocessing, but represents
-    #     # the vocabulary process.
-
-    #     from nltk.corpus import stopwords
-    #     from nltk.tokenize.regexp import RegexpTokenizer
-    #     from nltk.stem import WordNetLemmatizer
-    #     from spellchecker import SpellChecker
-    #     import pandas as pd
-    #     import re
-
-    #     # Initialize tokenizer to remove non alphabetical characters
-    #     tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
-
-    #     # Initialize stop words to reduce unimportant features
-    #     stop_words = set(stopwords.words('english'))
-
-    #     #Only Series are expected by the function, otherwise a value error is raised.
-    #     if isinstance(text_series, pd.Series):
-        
-    #     # Initialize a list to hold the final returned vocabulary.
-    #         vocab_list = []
-    #         for item in text_series:
-    #             if isinstance(text, str):
-                    
-    #                 # remove all text between the first and last html tags
-    #                 item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', text)
-
-    #                 # remove all remaining non alphabetical text and parse as lowercase.
-    #                 item_tokens = tokenizer.tokenize(item_no_tags.lower())
-
-    #                 for token in item_tokens:
-                    
-    #                     # For each word correct spelling mistakes
-    #                     corrected_token = spell_checker.correction(token.strip())
-
-    #                     # convert the surviving tokens to their relative stem
-    #                     if corrected_token:
-    #                         stemmed_token = lemmatizer.lemmatize(corrected_token)
-
-    #                     # add words that exist and are not included in stop words to the vocab list
-    #                     if stemmed_token not in stop_words:
-    #                         vocab_list.append(stemmed_token)
-    #                         stop_words.append(corrected_token)
-    #         return vocab_list
-    #     else:
-    #         raise TypeError('Function must take a pd.Series as argument')
-
-    # def text_converter(text_series):
-    #     # Function to convert review series into keys that match the vocabulary..
-    #     # This code is not identical to the vocabulary code, which was optimized for multiprocessing, but represents
-
-    #     from nltk.corpus import stopwords
-    #     from nltk.tokenize.regexp import RegexpTokenizer
-    #     from nltk.stem import WordNetLemmatizer
-    #     from spellchecker import SpellChecker
-    #     import pandas as pd
-    #     import re
-
-    #     # Initialize tokenizer to remove non alphabetical characters
-    #     tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
-
-    #     # Initialize or import vocab list
-    #     with open('full_vocab_list.csv', 'r') as file:
-    #         csv_list = file.read().strip()
-    #         go_gauge = csv_list.split(',')
-
-    #     # The function needs to parse strings as well as series, 
-    #     # this if statement converts a singular string to a Pandas Sereis of length 1
-    #     if isinstance(text_series, str):
-    #         if text_series.strip() != '': # Check that empty strings are not parsed.
-    #             text_series = pd.Series([text_series])
-
-    #     #Only Series are expected by the function, otherwise a value error is raised.
-    #     if isinstance(text_series, pd.Series):
-        
-    #     # Initialize a list to hold the final returned series.
-    #         full_series = []
-    #         for item in text_series:
-    #             if isinstance(text, str):
-                    
-    #                 # remove all text between the first and last html tags
-    #                 item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', text)
-
-    #                 # remove all remaining non alphabetical text and parse as lowercase.
-    #                 item_tokens = tokenizer.tokenize(item_no_tags.lower())
-
-    #                 # initialize a string for the tokenized review text
-    #                 stemmed_string = ''
-
-    #                 for token in item_tokens:
-                    
-    #                     # For each word correct spelling mistakes
-    #                     corrected_token = spell_checker.correction(token.strip())
-
-    #                     # convert the surviving tokens to their relative stem
-    #                     if corrected_token:
-    #                         stemmed_token = lemmatizer.lemmatize(corrected_token)
-
-    #                     # add words that exist and are included in predfined vocabulary.
-    #                     if stemmed_token in go_gauge:
-    #                         stemmed_string += stemmed_token + ' '
-
-    #                 stemmed_string = stemmed_string.strip()
-                
-    #             full_series.append(stemmed_string)
-
-    #         # Return the list of stemmed string sentences as a pandas Series
-    #         return pd.Series(full_series)
-
-    #     else:
-    #         raise TypeError('Function must take a pd.Series or string as argument')
-
-    # -------------------
-    # Adam Submission End
-    # -------------------
-        
-    # def clean_text(text):
-    #     # Convert non-string to empty string
-    #     if not isinstance(text, str):
-    #         return ''
-    
-    #     # Remove hyperlinks
-    #     text = re.sub(r'http\S+', '', text)
-    #     # Remove HTML tags
-    #     text = re.sub(r'<[^>]+>', '', text)
-    #     # Remove newlines, carriage returns, and tabs
-    #     text = re.sub(r'[\n\r\t]', ' ', text)
-    #     # Remove numbers
-    #     text = re.sub(r'\d+', '', text)
-    #     # Remove special characters and punctuations
-    #     text = re.sub(r'[^a-zA-Z\s]', '', text)
-    #     # Replace multiple spaces with a single space
-    #     text = re.sub(r'\s+', ' ', text)
-    #     # Correct spelling
-    #     # text = correct_spelling(text)
-    #     return text.strip()
-    
-    # df['reviewText'] = df['reviewText'].apply(clean_text)
-    # """
-    # st.code(code_snippet, language='python')
     st.markdown('Several further methods were implemented to ready the dataset for modelling. These included \
             WordNetLemmatizer and the EnglishStemmer from the nltk.stem library. These models reduce the words to \
             roots of the word in different formats. Following tables and Wordclouds represent a comparison between two \
@@ -663,7 +515,7 @@ if page == pages[2]:
             'Lasso Regression',
             'Ridge Regression',
             'ElasticNet Regression',
-            'HGBC Regression'))
+            'HGBR Regression'))
         if sample_display == 'Linear Regression':
             st.markdown("""The best results were returned by the English Stemmer TFIDF Vector text processes which were sampled by the RandomOverSampler.  
 * Accuracy: 0.525
@@ -712,7 +564,7 @@ if page == pages[2]:
             with col2:
                 st.image('../images/enet_l1_ratios.png', use_column_width=True)
             
-        elif sample_display == 'HGBC Regression':
+        elif sample_display == 'HGBR Regression':
             st.markdown("""The best HGBC results were provided by:  
 * Lemmatizer TFIDF Vector with RandomOverSampler sampling:  
     * Accuracy: 0.499  
@@ -735,7 +587,7 @@ if page == pages[2]:
             'Lasso Regression',
             'Ridge Regression',
             'ElasticNet Regression',
-            'HGBC Regression'))
+            'HGBR Regression'))
         if sample_display == 'Linear Regression':
             st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
 * Lemmatizer TFIDF Vector - 500 k_neighbors  
@@ -788,7 +640,7 @@ if page == pages[2]:
             with col2:
                 st.write("")
             
-        elif sample_display == 'HGBC Regression':
+        elif sample_display == 'HGBR Regression':
             st.markdown("""Smote K_Neighbours were tested between 5 and 1000:  
 * Lemmatizer Count Vector - 50 k_neighbors  
     * Accuracy: 0.486  
@@ -814,7 +666,7 @@ if page == pages[2]:
             'Lasso Regression',
             'Ridge Regression',
             'ElasticNet Regression',
-            'HGBC Regression'))
+            'HGBR Regression'))
         if sample_display == 'Linear Regression':
             col1, col2 = st.columns(2)
             with col1:
@@ -843,7 +695,7 @@ if page == pages[2]:
             with col2:
                 st.write("")
             
-        elif sample_display == 'HGBC Regression':
+        elif sample_display == 'HGBR Regression':
             col1, col2 = st.columns(2)
             with col1:
                 st.image('../images/hgbr_cc_n_clusters.png', use_column_width=True)
@@ -921,13 +773,17 @@ if page == pages[3]:
 
 if page == pages[4]: 
     st.title('Conclusion')
-    st.markdown("## Conclusion")
     st.markdown("The machine learning models generated in this report leave some accuracy to be desired. At best they match \
             or marginally improve upon the baseline target accuracy of 69%, at worst the models dramatically reduce the \
             accuracy below that target value.")
+    st.markdown("""> ###### The best Model Accuracy on test data was 77%
+> ###### only an 8% increase on the baseline Accuracy.""")
     st.markdown("These models can not be used to predict review ratings with a high degree of confidence. Extreme\
                 values can be predicted with some degree of confidence, but nuance is easily lost in the models. Further \
                 imrpovements are required to create a suitable model that provides confidence in the results provided.")
+    st.image('../images/OverviewTree.png')
+    st.markdown("The classification methods produced better scores on Test data for all measurements, disproving the hypothesis.")
+    st.markdown("The best use case of this report is a supporting document for further progress on building a conclusive text sentiment analysis.")
     
 if page == pages[5]: 
     st.title('Discussion and Next Steps')
