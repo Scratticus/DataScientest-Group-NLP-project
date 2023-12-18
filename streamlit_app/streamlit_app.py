@@ -17,28 +17,27 @@ import os
 # Load the data
 @st.cache_data
 def load_data():
-    # df = pd.read_csv('exampleDF.csv')
-    df = pd.read_csv('../data/train.csv')
+    df = pd.read_csv('exampleDF.csv')
+    # df = pd.read_csv('../data/train.csv')
     df['reviewTime'] = pd.to_datetime(df['reviewTime'])
-    # dfCV = pd.read_csv('ReducedExampleRatings.csv')
-    # return df, dfCV
-    return df
-# @st.cache_data
-# def load_best_models():
-#     with open('../notebooks/Classification/RFBestModel.pkl', 'rb') as file:
-#         rf_model = pickle.load(file)
-#     with open('../notebooks/HGBRBestModel.pkl', 'rb') as file:
-#         hgbr_model = pickle.load(file)
-#     with open('../notebooks/Classification/LogisticBestModel.pkl', 'rb') as file:
-#         logistic_model = pickle.load(file)
-#     return rf_model, hgbr_model, logistic_model
+    dfCV = pd.read_csv('ReducedExampleRatings.csv')
+    return df, dfCV
+    # return df
+@st.cache_data
+def load_best_models():
+    with open('../notebooks/Classification/RFBestModel.pkl', 'rb') as file:
+        rf_model = pickle.load(file)
+    with open('../notebooks/HGBRBestModel.pkl', 'rb') as file:
+        hgbr_model = pickle.load(file)
+    with open('../notebooks/Classification/LogisticBestModel.pkl', 'rb') as file:
+        logistic_model = pickle.load(file)
+    return rf_model, hgbr_model, logistic_model
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 st.set_page_config(layout="wide")
 
-# df, dfCV = load_data()
-# rf_model, hgbr_model, logistic_model = load_best_models()
-df = load_data()
+df, dfCV = load_data()
+rf_model, hgbr_model, logistic_model = load_best_models()
 
 # Set the title and sidebar
 st.title("Comparison of Text Mined Customer Review Rating Prediction Models ")
@@ -150,7 +149,6 @@ if page == pages[1] :
              every review 5 stars will be 69% accurate against this data.')
     st.markdown(f"""> ##### Our baseline Accuracy is 69%
 > assuming all reviews are assigned rating 5.""")
-    # st.image('../images/ReportImages/OverallRatingDistribution.jpg', caption='Rating Distribution', use_column_width=True)
     st.markdown('### Distribution of verified and unverified Reviews')
     st.image('../images/DistVerifiedUnverified.png')
     st.markdown('### Reviews Over the Years')
@@ -342,7 +340,7 @@ if page == pages[1] :
             and TFIDF Vectorizer from sci-kit Learns text library.')
     st.markdown('##### Vectorized data')
     st.markdown('An example of vectorized data using **CountVectorizer**(max_features=100).')
-    # st.dataframe(dfCV, hide_index=True)
+    st.dataframe(dfCV, hide_index=True)
     st.markdown("The data was also vectorized using Google's Word2Vec model, which did not use the stemmers to produce \
             vectors.")
     
