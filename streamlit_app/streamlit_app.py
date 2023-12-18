@@ -897,14 +897,7 @@ if page == pages[4]:
     
 if page == pages[5]: 
     st.title('Discussion and Next Steps')
-    st.markdown("## Conclusion")
-    st.markdown("The machine learning models generated in this report leave some accuracy to be desired. At best they match \
-            or marginally improve upon the baseline target accuracy of 69%, at worst the models dramatically reduce the \
-            accuracy below that target value.")
-    st.markdown("These models can not be used to predict review ratings with a high degree of confidence. Extreme\
-                values can be predicted with some degree of confidence, but nuance is easily lost in the models. Further \
-                imrpovements are required to create a suitable model that provides confidence in the results provided.")
-    st.markdown("## Further")
+    st.markdown("## Further Investigation")
     st.markdown("Combining preprocessing techniques and modelling techniques into a Deep Learning model is a sensible next step \
             to pursue. Additionally, since the input data is heavily imbalanced and the greatest prediction \
             improvements were seen by increasing the size of the dataset, it could be wise to expand and diversify the \
@@ -969,7 +962,7 @@ if page == pages[5]:
         st.image('../images/Shap04.png')
     with col5:
         st.image('../images/Shap05.png')
-    st.markdown("### A Combined Approach")
+    st.markdown("### A Combined Approach - Deep Learning Hypothesis")
     st.markdown("A key advantage of the regression modelling results is the analytical potential of the uncut results. These results allow observations to be drawn from the distribution of \
                 each class. In comparison, a key advantage of the classification models is the categorical output with accompanying model confidence. See the boxplot chart below for \
                 a graphical representation of these advantages.")
