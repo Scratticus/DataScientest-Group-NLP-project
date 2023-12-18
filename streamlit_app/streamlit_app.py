@@ -290,7 +290,7 @@ if page == pages[2]:
                 'RandomUnderSampler'
             ],
             "Mean Train Accuracy": [0.874, 0.769, 0.971, 0.782, 0.971, 0.523, 0.556],
-            "Mean Test Accuracy": [ 0.770, 0.762, 0.753, 0.742, 0.683, 0.624, 0.484],
+            "Mean Test Accuracy": [ 0.770, 0.762, 0.753, 0.742, 0.683, 0.560, 0.484],
             "Mean Train Precision": [0.882, 0.720, 0.971, 0.752, 0.971, 0.517, 0.556],
             "Mean Test Precision": [0.725, 0.703, 0.708, 0.682, 0.663, 0.711, 0.660],
             "Mean Train Recall": [0.814, 0.769, 0.971, 0.782, 0.971, 0.523, 0.556],
@@ -781,7 +781,7 @@ if page == pages[4]:
     st.markdown("These models can not be used to predict review ratings with a high degree of confidence. Extreme\
                 values can be predicted with some degree of confidence, but nuance is easily lost in the models. Further \
                 imrpovements are required to create a suitable model that provides confidence in the results provided.")
-    st.image('../images/OverviewTree.png')
+    st.image('../images/OverviewTree2.png', width=1000)
     st.markdown("The classification methods produced better scores on Test data for all measurements, disproving the hypothesis.")
     st.markdown("The best use case of this report is a supporting document for further progress on building a conclusive text sentiment analysis.")
     
