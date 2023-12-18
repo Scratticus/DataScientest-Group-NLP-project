@@ -17,25 +17,28 @@ import os
 # Load the data
 @st.cache_data
 def load_data():
-    df = pd.read_csv('exampleDF.csv')
+    # df = pd.read_csv('exampleDF.csv')
+    df = pd.read_csv('../data/train.csv')
     df['reviewTime'] = pd.to_datetime(df['reviewTime'])
-    dfCV = pd.read_csv('ReducedExampleRatings.csv')
-    return df, dfCV
-@st.cache_data
-def load_best_models():
-    with open('../notebooks/Classification/RFBestModel.pkl', 'rb') as file:
-        rf_model = pickle.load(file)
-    with open('../notebooks/HGBRBestModel.pkl', 'rb') as file:
-        hgbr_model = pickle.load(file)
-    with open('../notebooks/Classification/LogisticBestModel.pkl', 'rb') as file:
-        logistic_model = pickle.load(file)
-    return rf_model, hgbr_model, logistic_model
+    # dfCV = pd.read_csv('ReducedExampleRatings.csv')
+    # return df, dfCV
+    return df
+# @st.cache_data
+# def load_best_models():
+#     with open('../notebooks/Classification/RFBestModel.pkl', 'rb') as file:
+#         rf_model = pickle.load(file)
+#     with open('../notebooks/HGBRBestModel.pkl', 'rb') as file:
+#         hgbr_model = pickle.load(file)
+#     with open('../notebooks/Classification/LogisticBestModel.pkl', 'rb') as file:
+#         logistic_model = pickle.load(file)
+#     return rf_model, hgbr_model, logistic_model
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 st.set_page_config(layout="wide")
 
-df, dfCV = load_data()
-rf_model, hgbr_model, logistic_model = load_best_models()
+# df, dfCV = load_data()
+# rf_model, hgbr_model, logistic_model = load_best_models()
+df = load_data()
 
 # Set the title and sidebar
 st.title("Comparison of Text Mined Customer Review Rating Prediction Models ")
@@ -148,6 +151,10 @@ if page == pages[1] :
     st.markdown(f"""> ##### Our baseline Accuracy is 69%
 > assuming all reviews are assigned rating 5.""")
     # st.image('../images/ReportImages/OverallRatingDistribution.jpg', caption='Rating Distribution', use_column_width=True)
+    st.markdown('### Distribution of verified and unverified Reviews')
+    st.image('../images/DistVerifiedUnverified.png')
+    st.markdown('### Reviews Over the Years')
+    st.image('../images/ReviewsOverYears.png')
     st.markdown('### Dataset Preprocessing')
     st.markdown('For further preprocessing, only the selected **Targer** and **Features** columns will be used.')
     st.markdown('###### Selected Target and Features')
@@ -160,162 +167,182 @@ if page == pages[1] :
             to the correct spelling and tokenised. To achieve these results, Regex, pyspellchecker and the \
             RegExTokenizer were used to pre process the text in each review In addition to this the reviews\
             were compared to nltk's English stopwords and stopwords were removed.")
-    code_snippet = """
-    # Function to clean the review text
+    # code_snippet = """
+    # # Function to clean the review text
 
-    ---------------------------------------------------------------------------------------------------------------------------
-    Adam submission - This code was not used, but is representative of the cumulative actions of the functions before stemming.
-    ---------------------------------------------------------------------------------------------------------------------------
-    def vocab_creator(text_series):
-        # Function to generate a vocabulary list. Use on the entire dataset for a comprehensive vocabulary.
-        # This code is not identical to the vocabulary code, which was optimized for multiprocessing, but represents
-        # the vocabulary process.
+    # ---------------------------------------------------------------------------------------------------------------------------
+    # Adam submission - This code was not used, but is representative of the cumulative actions of the functions before stemming.
+    # ---------------------------------------------------------------------------------------------------------------------------
+    # def vocab_creator(text_series):
+    #     # Function to generate a vocabulary list. Use on the entire dataset for a comprehensive vocabulary.
+    #     # This code is not identical to the vocabulary code, which was optimized for multiprocessing, but represents
+    #     # the vocabulary process.
 
-        from nltk.corpus import stopwords
-        from nltk.tokenize.regexp import RegexpTokenizer
-        from nltk.stem import WordNetLemmatizer
-        from spellchecker import SpellChecker
-        import pandas as pd
-        import re
+    #     from nltk.corpus import stopwords
+    #     from nltk.tokenize.regexp import RegexpTokenizer
+    #     from nltk.stem import WordNetLemmatizer
+    #     from spellchecker import SpellChecker
+    #     import pandas as pd
+    #     import re
 
-        # Initialize tokenizer to remove non alphabetical characters
-        tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
+    #     # Initialize tokenizer to remove non alphabetical characters
+    #     tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
 
-        # Initialize stop words to reduce unimportant features
-        stop_words = set(stopwords.words('english'))
+    #     # Initialize stop words to reduce unimportant features
+    #     stop_words = set(stopwords.words('english'))
 
-        #Only Series are expected by the function, otherwise a value error is raised.
-        if isinstance(text_series, pd.Series):
+    #     #Only Series are expected by the function, otherwise a value error is raised.
+    #     if isinstance(text_series, pd.Series):
         
-        # Initialize a list to hold the final returned vocabulary.
-            vocab_list = []
-            for item in text_series:
-                if isinstance(text, str):
+    #     # Initialize a list to hold the final returned vocabulary.
+    #         vocab_list = []
+    #         for item in text_series:
+    #             if isinstance(text, str):
                     
-                    # remove all text between the first and last html tags
-                    item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', text)
+    #                 # remove all text between the first and last html tags
+    #                 item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', text)
 
-                    # remove all remaining non alphabetical text and parse as lowercase.
-                    item_tokens = tokenizer.tokenize(item_no_tags.lower())
+    #                 # remove all remaining non alphabetical text and parse as lowercase.
+    #                 item_tokens = tokenizer.tokenize(item_no_tags.lower())
 
-                    for token in item_tokens:
+    #                 for token in item_tokens:
                     
-                        # For each word correct spelling mistakes
-                        corrected_token = spell_checker.correction(token.strip())
+    #                     # For each word correct spelling mistakes
+    #                     corrected_token = spell_checker.correction(token.strip())
 
-                        # convert the surviving tokens to their relative stem
-                        if corrected_token:
-                            stemmed_token = lemmatizer.lemmatize(corrected_token)
+    #                     # convert the surviving tokens to their relative stem
+    #                     if corrected_token:
+    #                         stemmed_token = lemmatizer.lemmatize(corrected_token)
 
-                        # add words that exist and are not included in stop words to the vocab list
-                        if stemmed_token not in stop_words:
-                            vocab_list.append(stemmed_token)
-                            stop_words.append(corrected_token)
-            return vocab_list
-        else:
-            raise TypeError('Function must take a pd.Series as argument')
+    #                     # add words that exist and are not included in stop words to the vocab list
+    #                     if stemmed_token not in stop_words:
+    #                         vocab_list.append(stemmed_token)
+    #                         stop_words.append(corrected_token)
+    #         return vocab_list
+    #     else:
+    #         raise TypeError('Function must take a pd.Series as argument')
 
-    def text_converter(text_series):
-        # Function to convert review series into keys that match the vocabulary..
-        # This code is not identical to the vocabulary code, which was optimized for multiprocessing, but represents
+    # def text_converter(text_series):
+    #     # Function to convert review series into keys that match the vocabulary..
+    #     # This code is not identical to the vocabulary code, which was optimized for multiprocessing, but represents
 
-        from nltk.corpus import stopwords
-        from nltk.tokenize.regexp import RegexpTokenizer
-        from nltk.stem import WordNetLemmatizer
-        from spellchecker import SpellChecker
-        import pandas as pd
-        import re
+    #     from nltk.corpus import stopwords
+    #     from nltk.tokenize.regexp import RegexpTokenizer
+    #     from nltk.stem import WordNetLemmatizer
+    #     from spellchecker import SpellChecker
+    #     import pandas as pd
+    #     import re
 
-        # Initialize tokenizer to remove non alphabetical characters
-        tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
+    #     # Initialize tokenizer to remove non alphabetical characters
+    #     tokenizer = RegexpTokenizer(r'[a-zA-Z]+')
 
-        # Initialize or import vocab list
-        with open('full_vocab_list.csv', 'r') as file:
-            csv_list = file.read().strip()
-            go_gauge = csv_list.split(',')
+    #     # Initialize or import vocab list
+    #     with open('full_vocab_list.csv', 'r') as file:
+    #         csv_list = file.read().strip()
+    #         go_gauge = csv_list.split(',')
 
-        # The function needs to parse strings as well as series, 
-        # this if statement converts a singular string to a Pandas Sereis of length 1
-        if isinstance(text_series, str):
-            if text_series.strip() != '': # Check that empty strings are not parsed.
-                text_series = pd.Series([text_series])
+    #     # The function needs to parse strings as well as series, 
+    #     # this if statement converts a singular string to a Pandas Sereis of length 1
+    #     if isinstance(text_series, str):
+    #         if text_series.strip() != '': # Check that empty strings are not parsed.
+    #             text_series = pd.Series([text_series])
 
-        #Only Series are expected by the function, otherwise a value error is raised.
-        if isinstance(text_series, pd.Series):
+    #     #Only Series are expected by the function, otherwise a value error is raised.
+    #     if isinstance(text_series, pd.Series):
         
-        # Initialize a list to hold the final returned series.
-            full_series = []
-            for item in text_series:
-                if isinstance(text, str):
+    #     # Initialize a list to hold the final returned series.
+    #         full_series = []
+    #         for item in text_series:
+    #             if isinstance(text, str):
                     
-                    # remove all text between the first and last html tags
-                    item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', text)
+    #                 # remove all text between the first and last html tags
+    #                 item_no_tags = re.sub(r'<.*?>.*?<.*?>', '', text)
 
-                    # remove all remaining non alphabetical text and parse as lowercase.
-                    item_tokens = tokenizer.tokenize(item_no_tags.lower())
+    #                 # remove all remaining non alphabetical text and parse as lowercase.
+    #                 item_tokens = tokenizer.tokenize(item_no_tags.lower())
 
-                    # initialize a string for the tokenized review text
-                    stemmed_string = ''
+    #                 # initialize a string for the tokenized review text
+    #                 stemmed_string = ''
 
-                    for token in item_tokens:
+    #                 for token in item_tokens:
                     
-                        # For each word correct spelling mistakes
-                        corrected_token = spell_checker.correction(token.strip())
+    #                     # For each word correct spelling mistakes
+    #                     corrected_token = spell_checker.correction(token.strip())
 
-                        # convert the surviving tokens to their relative stem
-                        if corrected_token:
-                            stemmed_token = lemmatizer.lemmatize(corrected_token)
+    #                     # convert the surviving tokens to their relative stem
+    #                     if corrected_token:
+    #                         stemmed_token = lemmatizer.lemmatize(corrected_token)
 
-                        # add words that exist and are included in predfined vocabulary.
-                        if stemmed_token in go_gauge:
-                            stemmed_string += stemmed_token + ' '
+    #                     # add words that exist and are included in predfined vocabulary.
+    #                     if stemmed_token in go_gauge:
+    #                         stemmed_string += stemmed_token + ' '
 
-                    stemmed_string = stemmed_string.strip()
+    #                 stemmed_string = stemmed_string.strip()
                 
-                full_series.append(stemmed_string)
+    #             full_series.append(stemmed_string)
 
-            # Return the list of stemmed string sentences as a pandas Series
-            return pd.Series(full_series)
+    #         # Return the list of stemmed string sentences as a pandas Series
+    #         return pd.Series(full_series)
 
-        else:
-            raise TypeError('Function must take a pd.Series or string as argument')
+    #     else:
+    #         raise TypeError('Function must take a pd.Series or string as argument')
 
-    -------------------
-    Adam Submission End
-    -------------------
+    # -------------------
+    # Adam Submission End
+    # -------------------
         
-    def clean_text(text):
-        # Convert non-string to empty string
-        if not isinstance(text, str):
-            return ''
+    # def clean_text(text):
+    #     # Convert non-string to empty string
+    #     if not isinstance(text, str):
+    #         return ''
     
-        # Remove hyperlinks
-        text = re.sub(r'http\S+', '', text)
-        # Remove HTML tags
-        text = re.sub(r'<[^>]+>', '', text)
-        # Remove newlines, carriage returns, and tabs
-        text = re.sub(r'[\n\r\t]', ' ', text)
-        # Remove numbers
-        text = re.sub(r'\d+', '', text)
-        # Remove special characters and punctuations
-        text = re.sub(r'[^a-zA-Z\s]', '', text)
-        # Replace multiple spaces with a single space
-        text = re.sub(r'\s+', ' ', text)
-        # Correct spelling
-        # text = correct_spelling(text)
-        return text.strip()
+    #     # Remove hyperlinks
+    #     text = re.sub(r'http\S+', '', text)
+    #     # Remove HTML tags
+    #     text = re.sub(r'<[^>]+>', '', text)
+    #     # Remove newlines, carriage returns, and tabs
+    #     text = re.sub(r'[\n\r\t]', ' ', text)
+    #     # Remove numbers
+    #     text = re.sub(r'\d+', '', text)
+    #     # Remove special characters and punctuations
+    #     text = re.sub(r'[^a-zA-Z\s]', '', text)
+    #     # Replace multiple spaces with a single space
+    #     text = re.sub(r'\s+', ' ', text)
+    #     # Correct spelling
+    #     # text = correct_spelling(text)
+    #     return text.strip()
     
-    df['reviewText'] = df['reviewText'].apply(clean_text)
-    """
-    st.code(code_snippet, language='python')
+    # df['reviewText'] = df['reviewText'].apply(clean_text)
+    # """
+    # st.code(code_snippet, language='python')
     st.markdown('Several further methods were implemented to ready the dataset for modelling. These included \
             WordNetLemmatizer and the EnglishStemmer from the nltk.stem library. These models reduce the words to \
-            roots of the word in different formats. To enable machine learning on these stemming methods, \
+            roots of the word in different formats. Following tables and Wordclouds represent a comparison between two \
+            text-processing methods used.')
+    # st.markdown('Following tables and Wordclouds represent a comparison between two text-processing methods used.')
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown('##### Lemmatized text')
+        table_data = {
+        'Common words': ['work', 'one', 'great', 'filter', 'dryer', 'product', 'fit', 'vent', 'water', 'good', 'time', 'well', 'use', 'would', 'get', 'like', 'easy', 'price', 'clean', 'year'],
+        'Count': [26024, 25752, 23187, 21712, 18939, 17920, 17147, 16476, 16133, 15679, 15413, 13846, 13728, 13693, 12881, 12041, 11674, 11401, 9705, 9640]
+        }
+        st.table(table_data)
+        st.image('../images/WordcloudLem2.png')
+    with col2:
+        st.markdown('##### Stemmatized text')
+        table_data = {
+        'Common words': ['stranger', 'book', 'us', 'alan', 'gregorian', 'idea', 'innovn', 'new', 'think', 'open', 'one', 'insight', 'differ', 'peopl', 'necess', 'read', 'learn', 'great', 'get', 'realli'],
+        'Count': [55, 52, 33, 28, 26, 25, 24, 20, 19, 17, 16, 15, 14, 13, 13, 12, 12, 10, 10, 10]
+        }
+        st.table(table_data)
+        st.image('../images/WordcloudStem.png')
+    st.markdown('To enable machine learning on these stemming methods, \
             the datasets need to be converted to number vectors and a further two models in the CountVectorizer \
             and TFIDF Vectorizer from sci-kit Learns text library.')
     st.markdown('##### Vectorized data')
     st.markdown('An example of vectorized data using **CountVectorizer**(max_features=100).')
-    st.dataframe(dfCV, hide_index=True)
+    # st.dataframe(dfCV, hide_index=True)
     st.markdown("The data was also vectorized using Google's Word2Vec model, which did not use the stemmers to produce \
             vectors.")
     
@@ -507,15 +534,7 @@ if page == pages[2]:
             from amazon reviews as detailed in the Data Quality Report. The models are detailed in the following sections. \
             the goal of the modelling is to accurately analyse the sentiment of the text review and predict the rating that the \
             user submitted alongside their review.')
-    st.markdown('## Classification Models')
-    st.markdown("""The Models being compared include:
-* LogisticRegression
-* Support Vector Machine Classification
-* K Nearest Neighbors
-* Decision Tree Classifier
-* Random Forest Classifier
-* Naïve Bayes
-* Histogram Gradient Boosting Classifier""")
+    st.image('../images/OverviewTree.png')
     st.markdown('## Regression Models')
     st.markdown("""The Models being compared include:
 * Linear Regression
@@ -523,6 +542,15 @@ if page == pages[2]:
 * Ridge
 * ElasticNet 
 * Histogram Gradient Boosting Regressor""")
+    st.markdown('## Classification Models')
+    st.markdown("""The Models being compared include:
+* LogisticRegression
+* Support Vector Machine Classification
+* K Nearest Neighbors
+* Decision Tree Classifier
+* Random Forest Classifier
+* Naive Bayes
+* Histogram Gradient Boosting Classifier""")
     st.markdown('## Hypothesis')
     st.markdown('The ratings target variable consists of integers that follow a linear related scale. \
             Theoretically these reatings should be able to return a reliable score in regression models as well \
@@ -946,7 +974,7 @@ if page == pages[4]:
     st.markdown('More complex models such as Deep Learning models could be implemented for such a purpose.')
     st.markdown('##### Overall SHAP analysis for all 5 classes')
     st.image('../images/ShapOverall.png')
-    st.markdown('Next images.')
+    st.markdown('##### Separate SHAP analysis for each class')
     # Create columns for layout
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
