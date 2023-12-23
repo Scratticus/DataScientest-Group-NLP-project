@@ -3,11 +3,11 @@ Text Review Sentiment Analysis using Classification Modelling vs Regression Mode
 
 Contributors
 ------------
-Contributors:
-    - Adam Cleaver BEng, 
-    - Ing. Lukas Topinka, M.Sc. 
+Contributors:  
+* Adam Cleaver BEng, 
+* Ing. Lukas Topinka, M.Sc. 
 DataScientest Supervisor: 
-    - Maëlys Bassilekin Blanc 
+* Maëlys Bassilekin Blanc 
 
 Project Description
 ------------
@@ -20,55 +20,81 @@ The project builds a solid foundation for further investigation and suggests con
 In this report several Classification and Regression Models are compared using data from amazon reviews as detailed in the Data Quality Report. The goal of the modelling is to accurately analyze the sentiment of the text review and predict the rating that the user submitted alongside their review. 
 
 Regression Models being compared include: 
-    - Linear Regression
-    - Lasso
-    - Ridge
-    - ElasticNet
-    - Histogram Gradient Boosting Regressor 
+* Linear Regression
+* Lasso
+* Ridge
+* ElasticNet
+* Histogram Gradient Boosting Regressor 
 
 Classification Models being compared include: 
-    - LogisticRegression
-    - Support Vector Machine Classification
-    - K Nearest Neighbors
-    - Decision Tree Classifier
-    - Random Forest Classifier
-    - Naive Bayes
-    - Histogram Gradient Boosting Classifier
+* LogisticRegression
+* Support Vector Machine Classification
+* K Nearest Neighbors
+* Decision Tree Classifier
+* Random Forest Classifier
+* Naive Bayes
+* Histogram Gradient Boosting Classifier
 
 There are no releases associated with this project, installing and running the various notebooks is recommended only for educational purposes, to test the findings established in the report PDFs.
 
 Project Organization
 ------------
 amazon_review
+
     ├── README.md               <- This file
+
     ├── requirements.txt        <- all source requirements for install
+
     ├── LICENSE                 <- GNU Generaql Public License
+
     ├── .gitignore
+
     ├── data               
+
     │   ├── processed           <- Final vocabularies available in google drive. https://drive.google.com/drive/folders/1MMH-EXHOmrBhmsoCN14KgrqF9OsVWXmy?usp=sharing
+
     │   └── raw                 <- Raw data JSONs can be found here: https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/ 
+
     │
+
     ├── models                  <- Final vocabularies available in google drive. https://drive.google.com/drive/folders/1MMH-EXHOmrBhmsoCN14KgrqF9OsVWXmy?usp=sharing
+
     |   └── classification
+
     |   └── regression
+
     │
+
     ├── report          
+
     |   └── images                  <- location for all generated images
+
     |   └── notebooks
+
     |       └── classification      <- notebooks generating classification models
+
     |       └── data_cleaning       <- notebooks for cleaning datasets
+
     |           └── lem_stem_functions      <- Houses Text processes which can be called from any location in the project.
+
     |       └── deep_learning       <- WIP notebook generating deep learning models
+
     |       └── feature_extraction  <- WIP notebook generating feature extraction models and new vocab lists
+
     |       └── regression          <- notebooks generating regression models
+
     |   └── PDFs                <- location for PDF report versions   
+
     |   └── streamlit_app       <- streamlit_app location. streamlit app should be run from containing folder.
 
 Data Source
 -------------
 Justifying recommendations using distantly-labeled reviews and fined-grained aspects 
+
 Jianmo Ni, Jiacheng Li, Julian McAuley 
+
 Empirical Methods in Natural Language Processing (EMNLP), 2019 
+
 https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/ 
 
 
