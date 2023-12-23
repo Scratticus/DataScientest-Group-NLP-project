@@ -50,9 +50,9 @@ amazon_review
     │   ├── processed           <- Final vocabularies available in google drive. https://drive.google.com/drive/folders/1MMH-EXHOmrBhmsoCN14KgrqF9OsVWXmy?usp=sharing
     │   └── raw                 <- Raw data JSONs can be found here: https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/ 
     │
-    ├── models                  <- Final vocabularies available in google drive. https://drive.google.com/drive/folders/1MMH-EXHOmrBhmsoCN14KgrqF9OsVWXmy?usp=sharing
-    |   └── classification
-    |   └── regression
+    ├── models                  <- Final models available in google drive. https://drive.google.com/drive/folders/1MMH-EXHOmrBhmsoCN14KgrqF9OsVWXmy?usp=sharing
+    |   └── classification      <- Classification models location
+    |   └── regression          <- Regression models location
     │
     ├── report          
     |   └── images                  <- location for all generated images
@@ -81,4 +81,4 @@ Using this Project
 --------------
 This Project is intended for educational use to the end goal of inspiring meaningful contributions to Neuro Linguistic Processing method technologies, as such, the most valuable information is summarized in the PDF files in the report directory, where options for future work, and hypotheses are detailed.
 
-Users wishing to run the code themselves for creating vocab lists or prediction models can simply install from the requirements.txt and run the files of interest individually.
+Users wishing to run the code themselves for creating vocab lists or prediction models can simply install from the requirements.txt and run the files of interest individually. TO use the models or vocabularies generated during the creation of the project users will need to download them from a separate google drive location (due to GitHub filesize limits.)
