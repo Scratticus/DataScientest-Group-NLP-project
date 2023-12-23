@@ -6,6 +6,7 @@ Contributors
 Contributors:  
 * Adam Cleaver BEng, 
 * Ing. Lukas Topinka, M.Sc. 
+
 DataScientest Supervisor: 
 * Maëlys Bassilekin Blanc 
 
@@ -43,7 +44,7 @@ amazon_review
 
     ├── README.md               <- This file
     ├── requirements.txt        <- all source requirements for install
-    ├── LICENSE                 <- GNU Generaql Public License
+    ├── LICENSE                 <- GNU General Public License
     ├── .gitignore
     ├── data               
     │   ├── processed           <- Final vocabularies available in google drive. https://drive.google.com/drive/folders/1MMH-EXHOmrBhmsoCN14KgrqF9OsVWXmy?usp=sharing
