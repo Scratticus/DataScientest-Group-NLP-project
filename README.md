@@ -48,37 +48,21 @@ amazon_review
     ├── data               
     │   ├── processed           <- Final vocabularies available in google drive. https://drive.google.com/drive/folders/1MMH-EXHOmrBhmsoCN14KgrqF9OsVWXmy?usp=sharing
     │   └── raw                 <- Raw data JSONs can be found here: https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/ 
-
     │
-
     ├── models                  <- Final vocabularies available in google drive. https://drive.google.com/drive/folders/1MMH-EXHOmrBhmsoCN14KgrqF9OsVWXmy?usp=sharing
-
     |   └── classification
-
     |   └── regression
-
     │
-
     ├── report          
-
     |   └── images                  <- location for all generated images
-
     |   └── notebooks
-
     |       └── classification      <- notebooks generating classification models
-
     |       └── data_cleaning       <- notebooks for cleaning datasets
-
     |           └── lem_stem_functions      <- Houses Text processes which can be called from any location in the project.
-
     |       └── deep_learning       <- WIP notebook generating deep learning models
-
     |       └── feature_extraction  <- WIP notebook generating feature extraction models and new vocab lists
-
     |       └── regression          <- notebooks generating regression models
-
     |   └── PDFs                <- location for PDF report versions   
-
     |   └── streamlit_app       <- streamlit_app location. streamlit app should be run from containing folder.
 
 Data Source
